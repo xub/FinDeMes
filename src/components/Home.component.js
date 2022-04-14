@@ -14,12 +14,17 @@ import { makeStyles } from '@mui/styles';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 
 import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
 
-const useStyles = makeStyles((theme) => ({ 
+import { useOnlineStatus } from "./useOnlineStatus";
+import { useQuery, useQueryClient } from "react-query";
+
+const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
   },
@@ -37,7 +42,6 @@ const useStyles = makeStyles((theme) => ({
     padding: '1px',
     margin: 'auto',
     maxWidth: 500,
-    //  border: `3px solid #004F9E`,
     borderRadius: 2,
   },
   image: {
@@ -54,11 +58,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Home = (props) => {
+  const isOnline = useOnlineStatus();
+
   const [total, setTotal] = useState([]);
   const [showClienteBoard, setShowClienteBoard] = useState(false);
   const [showAdminBoard, setShowAdminBoard] = useState(false);
 
-  //const { classes } = useStyles();
   const classes = useStyles();
 
   useEffect(() => {
@@ -68,46 +73,69 @@ const Home = (props) => {
       setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
     }
 
-    const GetData = async () => {
+    const GetLive = async () => {
       try {
         const result = await UserService.getlive('findemes');
         if (result.code !== 401) {
-          //setData(result.data);
         } else {
           props.history.push(process.env.PUBLIC_URL + "/login");
-          //history.push({ pathname: process.env.PUBLIC_URL + '/login', state: { response: '' } });
-        }
-      } catch (e) {
-        //console.log(e);
-        props.history.push(process.env.PUBLIC_URL + "/login");
-        //history.push({ pathname: process.env.PUBLIC_URL + '/login', state: { response: '' } });
-      }
-    }
-    GetData();
-
-    const GetBalance = async () => {
-      try {
-        const result = await UserService.getTotal();
-        if (result.code !== 401) {
-          setTotal(result.data.total);
         }
       } catch (e) {
         props.history.push(process.env.PUBLIC_URL + "/login");
-        //history.push({ pathname: process.env.PUBLIC_URL + '/login', state: { response: '' } });
       }
     }
-    GetBalance();
+    GetLive();
 
   }, []);
 
+  const categoriasQuery = useQuery('categorias', () => UserService.getCategorias(),
+    {
+      staleTime: Infinity
+    });
 
+  const balanceQuery = useQuery('balance', () => UserService.getBalance(),
+    {
+      staleTime: Infinity
+    });
+
+  const queryClient = useQueryClient();
+  const {
+    data: posts,
+    error,
+    isLoading,
+    isFetching,
+    isIdle,
+    refetch,
+  } = useQuery(["total"], () => UserService.getTotal(),
+    {
+      staleTime: Infinity
+    });
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex' }}>
+        <CircularProgress />
+      </Box>
+    );
+
+  }
+
+  if (error) {
+    return (
+      <section className="alert alert-danger">
+        Error fetching posts: {error.message}
+      </section>
+    );
+  }
 
   return (
 
     <>
-      <Alert variant="filled" severity="success">
-        Dinero restante: $ {total}
-      </Alert>
+      {posts && (
+        <Alert variant="filled" severity="success">
+          Dinero restante: $ {posts.total}
+        </Alert>
+      )}
       <sections>
 
         {showClienteBoard && (

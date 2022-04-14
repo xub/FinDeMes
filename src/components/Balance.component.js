@@ -13,7 +13,6 @@ import Paper from '@mui/material/Paper';
 import { Modal, Button } from '@mui/material';
 
 import Breadcrumbs from '@mui/material/Breadcrumbs';
-import Alert from '@mui/material/Alert';
 
 import {
   Grid,
@@ -27,6 +26,8 @@ import { createTheme } from "@mui/material/styles";
 import MaterialTable from 'material-table';
 
 import UserService from "../services/user.service";
+
+import { useQuery, useQueryClient } from 'react-query'
 
 let direction = "ltr";
 
@@ -66,7 +67,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Balance(props) {
-  const [total, setTotal] = useState([]);
+
   const styles = useStyles();
   const classes = useStyles();
   const [data, setData] = useState([]);
@@ -75,20 +76,6 @@ export default function Balance(props) {
     nombre: '',
     codigo: '',
   })
-
-  const peticionGet = async () => {
-    const result = await UserService.getBalance();
-    setData(result.data);
-  }
-
-  const peticionDelete = async () => {
-    const response = await UserService.delMovimiento(consolaSeleccionada.id);
-    var data = response.data;
-    setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
-    peticionGet();
-    totalT();
-    abrirCerrarModalEliminar();
-  }
 
   const abrirCerrarModalEliminar = () => {
     setModalEliminar(!modalEliminar);
@@ -105,41 +92,36 @@ export default function Balance(props) {
     props.history.push(process.env.PUBLIC_URL + "/")
   }
 
-  const totalT = () => {
+  const queryClient = useQueryClient();
 
-    const GetBalance = async () => {
-      try {
-        const result = await UserService.getTotal();
-        if (result.code !== 401) {
-          setTotal(result.data.total);
+  const balanceQuery = useQuery(['balance','id'], () => UserService.getBalance(),
+    {
+      initialData: () => {
+        // Get the query state
+        const state = queryClient.getQueryState(['balance','id'])
+
+        // If the query exists and has data that is no older than 10 seconds...
+        if (state && Date.now() - state.dataUpdatedAt <= 10 * 1000) {
+          // return the individual todo
+          return state.data()
         }
-      } catch (e) {
-        props.history.push(process.env.PUBLIC_URL + "/login");
-        //history.push({ pathname: process.env.PUBLIC_URL + '/login', state: { response: '' } });
-      }
-    }
-    GetBalance();
+      }, 
+      staleTime: Infinity,
+    });
 
+  const peticionGet = async () => {
+    const result = await UserService.getBalance();
+    setData(result.data);
   }
 
-  useEffect(() => {
-    const GetData = async () => {
-      try {
-        const result = await UserService.getBalance();
-        if (result) {
-          setData(result.data);
-        } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
-        }
-      } catch (e) {
-        props.history.push(process.env.PUBLIC_URL + "/login");
-      }
-    }
-    GetData();
-
-    totalT();
-
-  }, []);
+  const peticionDelete = async () => {
+    const response = await UserService.delMovimiento(consolaSeleccionada.id);
+    var data = response.data;
+    setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
+    peticionGet();
+    //totalT();
+    abrirCerrarModalEliminar();
+  }
 
   const bodyEliminar = (
     <div className={styles.modal}>
@@ -153,11 +135,6 @@ export default function Balance(props) {
 
   return (
     <Paper className={classes.root}>
-
-      <Alert variant="filled" severity="success">
-        Dinero restante: $ {total}
-      </Alert>
-      <br></br>
 
       <Breadcrumbs aria-label="breadcrumb">
         <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => inicio()}>Inicio</Button>
@@ -212,7 +189,7 @@ export default function Balance(props) {
                     },
                   ]}
 
-                  data={data}
+                  data={balanceQuery.data}
                   actions={[
                     {
                       icon: 'edit',

@@ -14,7 +14,12 @@ import ReactECharts from 'echarts-for-react';
 
 import UserService from "../services/user.service";
 
+import { useOnlineStatus } from "./useOnlineStatus";
+
 export default function Graficos(props) {
+
+  const isOnline = useOnlineStatus();
+
   const [data1, setData1] = useState([]);
   const [labels, setLabels] = useState([]);
   const [gastos, setGastos] = useState([]);
@@ -50,6 +55,7 @@ export default function Graficos(props) {
   };
 
   useEffect(() => {
+
     const GetData = async () => {
       try {
         const result = await UserService.getGrafico();

@@ -7,7 +7,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react'
 
-import { makeStyles} from '@mui/styles';
+import { makeStyles } from '@mui/styles';
 
 import Paper from '@mui/material/Paper';
 import { Modal, Button } from '@mui/material/';
@@ -26,6 +26,10 @@ import { createTheme } from "@mui/material/styles";
 import MaterialTable from 'material-table';
 
 import UserService from "../services/user.service";
+
+import { useOnlineStatus } from "./useOnlineStatus";
+
+import { useQuery } from 'react-query'
 
 let direction = "ltr";
 
@@ -65,6 +69,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Categorias(props) {
+  const isOnline = useOnlineStatus();
+
   const styles = useStyles();
   const classes = useStyles();
   const [data, setData] = useState([]);
@@ -104,21 +110,7 @@ export default function Categorias(props) {
     (caso === 'Editar') ? props.history.push(process.env.PUBLIC_URL + "/categoriasmod/" + consola.id) : abrirCerrarModalEliminar()
   }
 
-  useEffect(() => {
-    const GetData = async () => {
-      try {
-        const result = await UserService.getCategorias();
-        if (result) {
-          setData(result.data);
-        } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
-        }
-      } catch (e) {
-        props.history.push(process.env.PUBLIC_URL + "/login");
-      }
-    }
-    GetData();
-  }, []);
+  const categoriasQuery = useQuery('categorias');
 
   const bodyEliminar = (
     <div className={styles.modal}>
@@ -168,7 +160,7 @@ export default function Categorias(props) {
                       field: 'nombre',
                     },
                   ]}
-                  data={data}
+                  data={categoriasQuery.data}
                   actions={[
                     {
                       icon: 'edit',

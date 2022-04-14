@@ -25,6 +25,10 @@ import * as yup from 'yup';
 
 import UserService from "../services/user.service";
 
+import { useOnlineStatus } from "./useOnlineStatus";
+
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+
 //Validacion del formulario
 const validationSchema = yup.object({
   nombre: yup
@@ -68,6 +72,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Balancemod(props) {
+  const isOnline = useOnlineStatus();
 
   //  const [data, setData] = useState([
   //    { nombre: 'Mehmet' },
@@ -83,6 +88,7 @@ export default function Balancemod(props) {
       importe: '',
       nota: '',
       tipo: '',
+      id: '',
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
@@ -95,29 +101,31 @@ export default function Balancemod(props) {
   const styles = useStyles();
   const classes = useStyles();
 
-  const [datos, setDatos] = useState([]);
+  //const [datos, setDatos] = useState([]);
   const [data, setData] = useState([]);
+  const [data1, setData1] = useState([]);
   const [modalInsertar, setModalInsertar] = useState(false);
   const [consolaSeleccionada, setConsolaSeleccionada] = useState({
-      nombre: '',
+    nombre: '',
   })
 
   const handleChange = e => {
     const { name, value } = e.target;
     setConsolaSeleccionada(prevState => ({
-        ...prevState,
-        [name]: value
+      ...prevState,
+      [name]: value
     }))
-}
+  }
 
-const addCategoria = async () => {
-  const response = await UserService.addmodCategoria(consolaSeleccionada.id, consolaSeleccionada);
-  setData(data.concat(response.data))
-  abrirCerrarModalInsertar()
-}
+  const addCategoria = async () => {
+    const response = await UserService.addmodCategoria(consolaSeleccionada.id, consolaSeleccionada);
+    setData(data.concat(response.data))
+    abrirCerrarModalInsertar()
+  }
 
-const peticionPost = async (values) => {
-    await UserService.addmodBalance(id, values);
+  const peticionPost = async (values) => {
+    mutation.mutate();
+    //await UserService.addmodBalance(id, values);
     cerrarEditar()
   }
 
@@ -130,45 +138,41 @@ const peticionPost = async (values) => {
   }
 
   useEffect(() => {
-    const GetData = async () => {
-      try {
-        const response = await UserService.getBalanceid(id);
-        if (response) {
-          var dataNueva = response.data;
-          dataNueva.map(consola => {
-            formik.initialValues.nombre = consola.nombre;
-            formik.initialValues.categoria = consola.categoria;
-            formik.initialValues.fecha = consola.fecha;
-            formik.initialValues.importe = consola.importe;
-            formik.initialValues.nota = consola.nota;
-            formik.initialValues.tipo = consola.tipo;
-            //setData(consola.yasimientos);
-          })
-          //response.data.yacimientos.map(con => {
-          //  data.nombre= con.nombre;
-          //})
-
-          setDatos(dataNueva);
-        } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
-        }
-      } catch (e) {
+ //   const GetData = async () => {
+ //     try {
+ //       const response = await UserService.getBalanceid(id);
+ //       if (response) {
+ //         var dataNueva = response.data;
+ //         dataNueva.map(consola => {
+ //           formik.initialValues.nombre = consola.nombre;
+ //           formik.initialValues.categoria = consola.categoria;
+ //           formik.initialValues.fecha = consola.fecha;
+ //           formik.initialValues.importe = consola.importe;
+ //           formik.initialValues.nota = consola.nota;
+ //           formik.initialValues.tipo = consola.tipo;
+ //           formik.initialValues.id = consola.id;
+ //          setData(response.data);
+ //         })
+ //       } else {
+ //         // props.history.push(process.env.PUBLIC_URL + "/login");
+ //       }
+ //     } catch (e) {
         //console.log(e);
-        props.history.push(process.env.PUBLIC_URL + "/login");
-      }
-    }
-    GetData();
+        //props.history.push(process.env.PUBLIC_URL + "/login");
+ //     }
+  //  }
+  //  GetData();
 
     const GetDato = async () => {
       try {
         const result = await UserService.getCategorias();
         if (result) {
-          setData(result.data);
+          setData1(result.data);
         } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
+          // props.history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
-        props.history.push(process.env.PUBLIC_URL + "/login");
+        //props.history.push(process.env.PUBLIC_URL + "/login");
       }
     }
     GetDato();
@@ -177,20 +181,78 @@ const peticionPost = async (values) => {
 
   const abrirCerrarModalInsertar = () => {
     setModalInsertar(!modalInsertar);
-}
+  }
 
-const bodyInsertar = (
-  <div className={styles.modal1}>
+  const bodyInsertar = (
+    <div className={styles.modal1}>
       <h3>Crear nueva categoria</h3>
       <TextField name="nombre" className={styles.inputMaterial} label="Categoria" onChange={handleChange} />
       <br />
       <br /><br />
       <div align="right">
-          <Button color="primary" onClick={() => addCategoria()}>Crear</Button>
-          <Button onClick={() => abrirCerrarModalInsertar()}>Cancelar</Button>
+        <Button color="primary" onClick={() => addCategoria()}>Crear</Button>
+        <Button onClick={() => abrirCerrarModalInsertar()}>Cancelar</Button>
       </div>
-  </div>
-)
+    </div>
+  )
+
+  const queryClient = useQueryClient();
+  //console.log(balanceQuery);
+  //const balanceQuery = queryClient.setQueryData('balance', () => UserService.getBalance());
+  const balanceQuery = useQuery('balance', () => UserService.getBalance(),
+  {
+    initialData: () => {
+      // Get the query state
+      const state = queryClient.getQueryState('balance')
+      console.log(state);
+      // If the query exists and has data that is no older than 10 seconds...
+      if (state && Date.now() - state.dataUpdatedAt <= 10 * 1000) {
+        // return the individual todo
+      return state.data()
+      }
+
+    }, 
+    staleTime: Infinity,
+  });
+
+ //const ba = queryClient.getQueryData(['balance', '6234d19b77910e6cd5749af4']);
+  const ba = queryClient.getQueryData(['balance','id']).find(data => data.id === id);
+  console.log(ba);
+
+ 
+        if (ba) {
+          //var dataNueva = ba;
+          //dataNueva.map(consola => {
+            formik.initialValues.nombre = ba.nombre;
+            formik.initialValues.categoria = ba.categoriaid;
+            formik.initialValues.fecha = ba.fecha;
+            formik.initialValues.importe = ba.importe;
+            formik.initialValues.nota = ba.nota;
+            formik.initialValues.tipo = ba.tipo;
+            formik.initialValues.id = ba.id;
+           //setData(response.data);
+          //})
+        }
+ 
+  const mutation = useMutation(async () => UserService.addmodBalance(id, formik.values), {
+    onMutate: async data => {
+      await queryClient.cancelQueries(['balance','id', id]);
+      const previousTodo = queryClient.getQueryData(['balance','id']);
+      console.log(previousTodo);
+      queryClient.setQueryData(['balance','id', id], formik.values)
+    },
+    onSuccess: data => {
+    },
+    onSettled: data =>  {
+      queryClient.invalidateQueries(['balance', {id:id}])
+      console.log('final');
+    },
+    onError: function (error) {
+      console.log('error');
+    }
+  });
+
+  //mutation.mutate(formik.values);
 
 
   return (
@@ -201,7 +263,7 @@ const bodyInsertar = (
       </Breadcrumbs>
 
       <div className={styles.modal}>
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={formik.handleSubmit} >
           <h3>Modificar movimiento</h3>
           <Grid container spacing={3}>
 
@@ -233,7 +295,7 @@ const bodyInsertar = (
                 helperText={formik.touched.categoria && formik.errors.categoria}
               >
                 <option aria-label="None" value="" />
-                {data.map((value) => (
+                {data1.map((value) => (
                   <option value={value.id} key={value.id}>
                     {value.nombre}
                   </option>

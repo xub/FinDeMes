@@ -8,7 +8,7 @@ import React from 'react';
 import { useEffect } from 'react'
 import { useParams } from 'react-router';
 
-import { makeStyles} from '@mui/styles';
+import { makeStyles } from '@mui/styles';
 
 import Paper from '@mui/material/Paper';
 import { Button, TextField } from '@mui/material';
@@ -20,6 +20,8 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 
 import UserService from "../services/user.service";
+
+import { useOnlineStatus } from "./useOnlineStatus";
 
 //Validacion del formulario
 const validationSchema = yup.object({
@@ -50,6 +52,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Categoriasadd(props) {
+    const isOnline = useOnlineStatus();
 
     //inicializacion de variables y validacion
     const formik = useFormik({
@@ -70,6 +73,7 @@ export default function Categoriasadd(props) {
 
     const peticionPost = async (data) => {
         const response = await UserService.addmodCategoria(id, data);
+        console.log(response);
         cerrarEditar()
     }
 
@@ -94,6 +98,7 @@ export default function Categoriasadd(props) {
             }
         }
         GetData();
+
     }, []);
 
     return (

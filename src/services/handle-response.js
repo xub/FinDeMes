@@ -9,6 +9,7 @@ export function handleResponse(response) {
             }
 
             const error = (data && data.message) || response.statusText;
+            console.log(error);
             return Promise.reject(error);
         }
 

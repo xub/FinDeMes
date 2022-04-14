@@ -12,6 +12,7 @@ import { makeStyles } from '@mui/styles';
 
 import ReactExport from "react-export-excel";
 
+
 const ExcelFile = ReactExport.ExcelFile;
 const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
 const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
@@ -45,10 +46,9 @@ const useStyles = makeStyles((theme) => ({
 const dataSet1 = [];
 
 const Excel = ({ url }) => {
-    
-   const styles = useStyles();
-   const classes = useStyles();
 
+    const styles = useStyles();
+    const classes = useStyles();
 
     return (
         <Paper className={classes.root}>

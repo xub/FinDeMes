@@ -8,7 +8,7 @@ import React from 'react';
 import { useParams } from 'react-router';
 import { useState, useEffect } from 'react'
 
-import { makeStyles} from '@mui/styles';
+import { makeStyles } from '@mui/styles';
 
 import Paper from '@mui/material/Paper';
 import { Modal, Button, TextField } from '@mui/material';
@@ -18,10 +18,18 @@ import Select from '@mui/material/Select';
 import Grid from '@mui/material/Grid';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 
+import Snackbar from '@mui/material/Snackbar';
+
+import Alert from '@mui/material/Alert';
+
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 
 import UserService from "../services/user.service";
+
+import { useOnlineStatus } from "./useOnlineStatus";
+
+import { useMutation } from 'react-query';
 
 //Validacion del formulario
 const validationSchema = yup.object({
@@ -50,7 +58,7 @@ const useStyles = makeStyles((theme) => ({
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)'
-      },
+    },
     modal: {
         border: '2px solid #000',
     },
@@ -63,12 +71,26 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Balanceadd(props) {
+    const [open, setOpen] = useState(false);
+    const [vertical, setVertical] = useState('top');
+    const [horizontal, setHorizonal] = useState('center');
+
+    const isOnline = useOnlineStatus();
     const { id } = useParams();
-    const [data, setData] = useState([]);
+    const [data1, setData] = useState([]);
     const [modalInsertar, setModalInsertar] = useState(false);
     const [consolaSeleccionada, setConsolaSeleccionada] = useState({
         nombre: '',
-    })
+    });
+    const fortmatResponse = (res) => {
+        return JSON.stringify(res, null, 2);
+    };
+    const [postResult, setPostResult] = useState(null);
+
+
+    const handleClose = () => {
+        setOpen(false);
+    };
 
     const handleChange = e => {
         const { name, value } = e.target;
@@ -90,7 +112,8 @@ export default function Balanceadd(props) {
         },
         validationSchema: validationSchema,
         onSubmit: (values) => {
-            peticionPost(values);
+            //peticionPost(values);
+            postData();
             //alert(JSON.stringify(values, null, 2));
         },
     });
@@ -102,10 +125,6 @@ export default function Balanceadd(props) {
         props.history.push(process.env.PUBLIC_URL + "/")
     }
 
-    const peticionPost = async (data) => {
-        await UserService.addmodBalance(id, data);
-        cerrarEditar()
-    }
 
     const cerrarEditar = () => {
         props.history.push(process.env.PUBLIC_URL + "/home");
@@ -113,18 +132,18 @@ export default function Balanceadd(props) {
 
     useEffect(() => {
 
-        const GetData = async () => {
-            try {
-                const result = await UserService.getlive('findemes');
-                if (result) {
-                } else {
-                    props.history.push(process.env.PUBLIC_URL + "/login");
-                }
-            } catch (e) {
-                props.history.push(process.env.PUBLIC_URL + "/login");
-            }
-        }
-        GetData();
+        //       const GetData = async () => {
+        //           try {
+        //               const result = await UserService.getlive('findemes');
+        //               if (result) {
+        //               } else {
+        //                   props.history.push(process.env.PUBLIC_URL + "/login");
+        //               }
+        //           } catch (e) {
+        //               props.history.push(process.env.PUBLIC_URL + "/login");
+        //           }
+        //       }
+        //       GetData();
 
         const GetDato = async () => {
             try {
@@ -145,7 +164,7 @@ export default function Balanceadd(props) {
     //add codigo qr
     const addCategoria = async () => {
         const response = await UserService.addmodCategoria(consolaSeleccionada.id, consolaSeleccionada);
-        setData(data.concat(response.data))
+        setData(data1.concat(response.data))
         abrirCerrarModalInsertar()
     }
 
@@ -165,6 +184,42 @@ export default function Balanceadd(props) {
             </div>
         </div>
     )
+
+    const { isLoading: isPostingTutorial, mutate: postTutorial } = useMutation(
+        async () => {
+            return await UserService.addmodBalance(id, formik.values);
+        },
+        {
+            onSuccess: (res) => {
+                const result = {
+                    status: res.status + "-" + res.statusText,
+                    headers: res.headers,
+                    data: res.data,
+                };
+                setPostResult(fortmatResponse(result));
+            },
+            onError: (err) => {
+                setPostResult(fortmatResponse(err.response?.data || err));
+            },
+        }
+    );
+
+    const peticionPost = async (data) => {
+        const result = await UserService.addmodBalance(id, data);
+        console.log(result);
+        if (result == 'TypeError: Failed to fetch') {
+            setOpen(true);
+        }
+        cerrarEditar()
+    }
+
+    function postData() {
+        try {
+            postTutorial();
+        } catch (err) {
+            setPostResult(fortmatResponse(err));
+        }
+    }
 
     return (
         <Paper className={classes.root}>
@@ -206,7 +261,7 @@ export default function Balanceadd(props) {
                                 helperText={formik.touched.categoria && formik.errors.categoria}
                             >
                                 <option aria-label="None" value="" />
-                                {data.map((value) => (
+                                {data1.map((value) => (
                                     <option value={value.id} key={value.id}>
                                         {value.nombre}
                                     </option>
@@ -271,13 +326,24 @@ export default function Balanceadd(props) {
                 </form>
 
             </div>
-
+            <div>
+                {postResult && (
+                    <div className="alert alert-secondary mt-2" role="alert">
+                        <pre>{postResult}</pre>
+                    </div>
+                )}
+            </div>
             <Modal
                 open={modalInsertar}
                 onClose={abrirCerrarModalInsertar}>
                 {bodyInsertar}
             </Modal>
 
+            <Snackbar open={open} autoHideDuration={12000} onClose={handleClose} anchorOrigin={{ vertical, horizontal }}>
+                <Alert severity="warning" onClose={handleClose} sx={{ width: '100%' }}>
+                    Estas sin conexion, los datos se guardaran en tu dispositivo temporalmente, cuando detectemos internet se guardaran en el servidor.
+                </Alert>
+            </Snackbar>
         </Paper>
     );
 }

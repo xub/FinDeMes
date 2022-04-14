@@ -7,7 +7,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 
-import { makeStyles} from '@mui/styles';
+import { makeStyles } from '@mui/styles';
 
 import Paper from '@mui/material/Paper';
 import { Button, TextField } from '@mui/material/';
@@ -26,6 +26,7 @@ import * as yup from 'yup';
 
 import UserService from "../services/user.service";
 
+import { useOnlineStatus } from "./useOnlineStatus";
 
 //Validacion del formulario
 const validationSchema = yup.object();
@@ -57,6 +58,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Informes(props) {
+    const isOnline = useOnlineStatus();
+
     const [datayacimientos, setDatayacimientos] = useState([]);
     const [dataequipos, setDataequipos] = useState([]);
 
@@ -86,7 +89,6 @@ export default function Informes(props) {
         //cerrarEditar()
     }
 
-
     //inicializacion de variables y validacion
     const formik = useFormik({
         initialValues: {
@@ -109,6 +111,7 @@ export default function Informes(props) {
 
 
     useEffect(() => {
+
         const GetData = async () => {
             try {
                 const result = await UserService.getlive();
@@ -122,6 +125,7 @@ export default function Informes(props) {
             }
         }
         GetData();
+
     }, []);
 
     const inicio = () => {
