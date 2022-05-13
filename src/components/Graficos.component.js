@@ -6,12 +6,19 @@
 
 import React, { useState, useEffect } from "react";
 
-import Paper from '@mui/material/Paper';
 import { Button } from '@mui/material/';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
+
+import Paper from '@mui/material/Paper';
+import AppBar from '@mui/material/AppBar';
+import CssBaseline from '@mui/material/CssBaseline';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Typography from '@mui/material/Typography';
 
 import ReactECharts from 'echarts-for-react';
 
+import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
 
 import { useOnlineStatus } from "./useOnlineStatus";
@@ -19,6 +26,10 @@ import { useOnlineStatus } from "./useOnlineStatus";
 export default function Graficos(props) {
 
   const isOnline = useOnlineStatus();
+
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [showClienteBoard, setShowClienteBoard] = useState(false);
+  const [showAdminBoard, setShowAdminBoard] = useState(false);
 
   const [data1, setData1] = useState([]);
   const [labels, setLabels] = useState([]);
@@ -56,6 +67,16 @@ export default function Graficos(props) {
 
   useEffect(() => {
 
+    // si no hay user hay que loguearse 
+    const user = AuthService.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      setShowClienteBoard(user.roles.includes("ROLE_USER"));
+      setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+    } else {
+      props.history.push(process.env.PUBLIC_URL + "/login");
+    }
+
     const GetData = async () => {
       try {
         const result = await UserService.getGrafico();
@@ -88,9 +109,25 @@ export default function Graficos(props) {
 
   return (
     <Paper>
-      <Breadcrumbs aria-label="breadcrumb">
-        <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => inicio()}>Inicio</Button>
-      </Breadcrumbs>
+
+      <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
+        <Toolbar>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+
+          >
+            <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
+          </IconButton>
+          <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
+            Excel con totales por categorias
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
       <ReactECharts option={options} />
     </Paper>
   );

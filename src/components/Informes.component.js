@@ -9,10 +9,8 @@ import { useState, useEffect } from 'react';
 
 import { makeStyles } from '@mui/styles';
 
-import Paper from '@mui/material/Paper';
 import { Button, TextField } from '@mui/material/';
 import Grid from '@mui/material/Grid';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Excel from "./Excel.component";
 import { Modal } from '@mui/material/';
 import Dialog from '@mui/material/Dialog';
@@ -21,9 +19,19 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
+import CssBaseline from '@mui/material/CssBaseline';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Typography from '@mui/material/Typography';
+
+import Paper from '@mui/material/Paper';
+import AppBar from '@mui/material/AppBar';
+
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 
+import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
 
 import { useOnlineStatus } from "./useOnlineStatus";
@@ -58,6 +66,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Informes(props) {
+
+
+    const [currentUser, setCurrentUser] = useState(undefined);
+    const [showClienteBoard, setShowClienteBoard] = useState(false);
+    const [showAdminBoard, setShowAdminBoard] = useState(false);
     const isOnline = useOnlineStatus();
 
     const [datayacimientos, setDatayacimientos] = useState([]);
@@ -112,19 +125,15 @@ export default function Informes(props) {
 
     useEffect(() => {
 
-        const GetData = async () => {
-            try {
-                const result = await UserService.getlive();
-                if (result) {
-                    setData(result.data);
-                } else {
-                    props.history.push("/login");
-                }
-            } catch (e) {
-                props.history.push("/login");
-            }
+        // si no hay user hay que loguearse 
+        const user = AuthService.getCurrentUser();
+        if (user) {
+            setCurrentUser(user);
+            setShowClienteBoard(user.roles.includes("ROLE_USER"));
+            setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+        } else {
+            props.history.push(process.env.PUBLIC_URL + "/login");
         }
-        GetData();
 
     }, []);
 
@@ -141,9 +150,23 @@ export default function Informes(props) {
     return (
         <Paper className={classes.root}>
 
-            <Breadcrumbs aria-label="breadcrumb">
-                <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => inicio()}>Inicio</Button>
-            </Breadcrumbs>
+            <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
+                <Toolbar>
+                    <IconButton
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        aria-label="menu"
+                        sx={{ mr: 2 }}
+
+                    >
+                        <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
+                    </IconButton>
+                    <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
+                        Excel con totales por categorias
+                    </Typography>
+                </Toolbar>
+            </AppBar>
 
             <div className={styles.modal}>
                 <form onSubmit={formik.handleSubmit}>
@@ -185,13 +208,14 @@ export default function Informes(props) {
                                 }}
                             />
                         </Grid>
+                        <Grid item xs={12} style={{ background: '#fff159' }}>
+                            <div align="center">
+                                <Button color="primary" type="submit">GENERAR INFORME</Button>
+                            </div>
+                        </Grid>
 
                     </Grid>
 
-                    <div align="right">
-                        <Button color="primary" type="submit">Generar informe</Button>
-                        <Button color="primary" onClick={() => cerrarEditar()}>Cancelar</Button>
-                    </div>
                 </form>
 
             </div>

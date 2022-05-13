@@ -10,9 +10,13 @@ import { useState, useEffect } from 'react'
 import { makeStyles } from '@mui/styles';
 
 import Paper from '@mui/material/Paper';
+import AppBar from '@mui/material/AppBar';
+import CssBaseline from '@mui/material/CssBaseline';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Typography from '@mui/material/Typography';
 import { Modal, Button } from '@mui/material';
-
-import Breadcrumbs from '@mui/material/Breadcrumbs';
 
 import {
   Grid,
@@ -25,9 +29,8 @@ import { createTheme } from "@mui/material/styles";
 
 import MaterialTable from 'material-table';
 
+import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
-
-import { useQuery, useQueryClient } from 'react-query'
 
 let direction = "ltr";
 
@@ -67,15 +70,34 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Balance(props) {
+ 
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [showClienteBoard, setShowClienteBoard] = useState(false);
+  const [showAdminBoard, setShowAdminBoard] = useState(false);
 
   const styles = useStyles();
   const classes = useStyles();
-  const [data, setData] = useState([]);
   const [modalEliminar, setModalEliminar] = useState(false);
+  const [data, setData] = useState([]);
   const [consolaSeleccionada, setConsolaSeleccionada] = useState({
+    id: '',
     nombre: '',
     codigo: '',
   })
+
+  const peticionGet = async () => {
+    const result = await UserService.getBalance();
+    setData(result);
+  }
+
+  const peticionDelete = async () => {
+    const response = await UserService.delMovimiento(consolaSeleccionada.id);
+    var data = response.data;
+    //setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
+    peticionGet();
+    //totalT();
+    abrirCerrarModalEliminar();
+  }
 
   const abrirCerrarModalEliminar = () => {
     setModalEliminar(!modalEliminar);
@@ -92,36 +114,33 @@ export default function Balance(props) {
     props.history.push(process.env.PUBLIC_URL + "/")
   }
 
-  const queryClient = useQueryClient();
+  useEffect(() => {
 
-  const balanceQuery = useQuery(['balance','id'], () => UserService.getBalance(),
-    {
-      initialData: () => {
-        // Get the query state
-        const state = queryClient.getQueryState(['balance','id'])
+    // si no hay user hay que loguearse 
+    const user = AuthService.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      setShowClienteBoard(user.roles.includes("ROLE_USER"));
+      setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+    } else {
+      props.history.push(process.env.PUBLIC_URL + "/login");
+    }
 
-        // If the query exists and has data that is no older than 10 seconds...
-        if (state && Date.now() - state.dataUpdatedAt <= 10 * 1000) {
-          // return the individual todo
-          return state.data()
+    const GetBalance = async () => {
+      try {
+        const result = await UserService.getBalance();
+        if (result) {
+          setData(result);
+        } else {
+          props.history.push(process.env.PUBLIC_URL + "/login");
         }
-      }, 
-      staleTime: Infinity,
-    });
+      } catch (e) {
+        props.history.push(process.env.PUBLIC_URL + "/login");
+      }
+    }
+    GetBalance();
 
-  const peticionGet = async () => {
-    const result = await UserService.getBalance();
-    setData(result.data);
-  }
-
-  const peticionDelete = async () => {
-    const response = await UserService.delMovimiento(consolaSeleccionada.id);
-    var data = response.data;
-    setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
-    peticionGet();
-    //totalT();
-    abrirCerrarModalEliminar();
-  }
+  }, []);
 
   const bodyEliminar = (
     <div className={styles.modal}>
@@ -136,9 +155,24 @@ export default function Balance(props) {
   return (
     <Paper className={classes.root}>
 
-      <Breadcrumbs aria-label="breadcrumb">
-        <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => inicio()}>Inicio</Button>
-      </Breadcrumbs>
+      <CssBaseline />
+
+      <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
+        <Toolbar>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
+            <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
+          </IconButton>
+          <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
+            Balance
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={theme}>
@@ -188,8 +222,7 @@ export default function Balance(props) {
                       cellStyle: { textAlign: "center" }
                     },
                   ]}
-
-                  data={balanceQuery.data}
+                  data={data}
                   actions={[
                     {
                       icon: 'edit',
@@ -204,25 +237,25 @@ export default function Balance(props) {
                   ]}
                   options={{
                     headerStyle: {
-                      backgroundColor: '#2e7d32',
-                      color: '#FFF',
+                      backgroundColor: '#fff159',
+                      color: '#000',
                     },
                     search: true,
                     actionsColumnIndex: -1
                   }}
                 />
 
-                <Modal
-                  open={modalEliminar}
-                  onClose={abrirCerrarModalEliminar}>
-                  {bodyEliminar}
-                </Modal>
-
               </Grid>
             </Grid>
           </div>
         </ThemeProvider>
       </StyledEngineProvider>
+
+      <Modal
+        open={modalEliminar}
+        onClose={abrirCerrarModalEliminar}>
+        {bodyEliminar}
+      </Modal>
 
     </Paper>
   );

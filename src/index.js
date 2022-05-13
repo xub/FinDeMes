@@ -6,23 +6,12 @@ import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
 
-import { QueryClient, QueryClientProvider} from 'react-query';
-
-import { ReactQueryDevtools } from "react-query/devtools";
-
-// Create a client
-const queryClient = new QueryClient()
-
 ReactDOM.render(
   <BrowserRouter>
-    <QueryClientProvider client={queryClient}>
       <App />
-      <ReactQueryDevtools />
-    </QueryClientProvider>
   </BrowserRouter>,
   document.getElementById("root")
 );
-
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

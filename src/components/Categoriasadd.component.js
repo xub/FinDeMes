@@ -5,8 +5,8 @@
  */
 
 import React from 'react';
-import { useEffect } from 'react'
 import { useParams } from 'react-router';
+import { useState, useEffect } from 'react'
 
 import { makeStyles } from '@mui/styles';
 
@@ -21,6 +21,7 @@ import * as yup from 'yup';
 
 import UserService from "../services/user.service";
 
+import AuthService from "../services/auth.service";
 import { useOnlineStatus } from "./useOnlineStatus";
 
 //Validacion del formulario
@@ -66,6 +67,10 @@ export default function Categoriasadd(props) {
         },
     });
 
+    const [currentUser, setCurrentUser] = useState(undefined);
+    const [showClienteBoard, setShowClienteBoard] = useState(false);
+    const [showAdminBoard, setShowAdminBoard] = useState(false);
+   
     const { id } = useParams();
 
     const styles = useStyles();
@@ -73,7 +78,6 @@ export default function Categoriasadd(props) {
 
     const peticionPost = async (data) => {
         const response = await UserService.addmodCategoria(id, data);
-        console.log(response);
         cerrarEditar()
     }
 
@@ -86,18 +90,17 @@ export default function Categoriasadd(props) {
     }
 
     useEffect(() => {
-        const GetData = async () => {
-            try {
-                const result = await UserService.getlive();
-                if (result) {
-                } else {
-                    props.history.push(process.env.PUBLIC_URL + "/login");
-                }
-            } catch (e) {
-                props.history.push(process.env.PUBLIC_URL + "/login");
-            }
+
+        // si no hay user hay que loguearse 
+        const user = AuthService.getCurrentUser();
+        if (user) {
+            setCurrentUser(user);
+            setShowClienteBoard(user.roles.includes("ROLE_USER"));
+            setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+        } else {
+            props.history.push(process.env.PUBLIC_URL + "/login");
         }
-        GetData();
+
 
     }, []);
 

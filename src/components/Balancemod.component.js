@@ -17,17 +17,23 @@ import TextareaAutosize from '@mui/material/TextareaAutosize';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 
+import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
+import CircularProgress from '@mui/material/CircularProgress';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import CssBaseline from '@mui/material/CssBaseline';
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 
+import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
-
-import { useOnlineStatus } from "./useOnlineStatus";
-
-import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 //Validacion del formulario
 const validationSchema = yup.object({
@@ -40,6 +46,10 @@ const validationSchema = yup.object({
 });
 
 const useStyles = makeStyles((theme) => ({
+
+  body: {
+    backgroundColor: '#fff159',
+  },
   root: {
     width: '100%',
   },
@@ -72,18 +82,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Balancemod(props) {
-  const isOnline = useOnlineStatus();
-
-  //  const [data, setData] = useState([
-  //    { nombre: 'Mehmet' },
-  //    { nombre: 'Zerya Betül' },
-  //  ]);
 
   //inicializacion de variables y validacion
   const formik = useFormik({
     initialValues: {
       nombre: '',
       categoria: '',
+      categoriaid: '',
       fecha: '',
       importe: '',
       nota: '',
@@ -96,18 +101,22 @@ export default function Balancemod(props) {
     },
   });
 
-  const { id } = useParams();
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [showClienteBoard, setShowClienteBoard] = useState(false);
+  const [showAdminBoard, setShowAdminBoard] = useState(false);
 
+  const { id } = useParams();
   const styles = useStyles();
   const classes = useStyles();
-
-  //const [datos, setDatos] = useState([]);
   const [data, setData] = useState([]);
+  const [datos, setDatos] = useState([]);
   const [data1, setData1] = useState([]);
   const [modalInsertar, setModalInsertar] = useState(false);
   const [consolaSeleccionada, setConsolaSeleccionada] = useState({
     nombre: '',
   })
+
+  let oldData = '';
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -124,8 +133,7 @@ export default function Balancemod(props) {
   }
 
   const peticionPost = async (values) => {
-    mutation.mutate();
-    //await UserService.addmodBalance(id, values);
+    await UserService.addmodBalance(id, values);
     cerrarEditar()
   }
 
@@ -137,42 +145,54 @@ export default function Balancemod(props) {
     props.history.push(process.env.PUBLIC_URL + "/")
   }
 
-  useEffect(() => {
- //   const GetData = async () => {
- //     try {
- //       const response = await UserService.getBalanceid(id);
- //       if (response) {
- //         var dataNueva = response.data;
- //         dataNueva.map(consola => {
- //           formik.initialValues.nombre = consola.nombre;
- //           formik.initialValues.categoria = consola.categoria;
- //           formik.initialValues.fecha = consola.fecha;
- //           formik.initialValues.importe = consola.importe;
- //           formik.initialValues.nota = consola.nota;
- //           formik.initialValues.tipo = consola.tipo;
- //           formik.initialValues.id = consola.id;
- //          setData(response.data);
- //         })
- //       } else {
- //         // props.history.push(process.env.PUBLIC_URL + "/login");
- //       }
- //     } catch (e) {
-        //console.log(e);
-        //props.history.push(process.env.PUBLIC_URL + "/login");
- //     }
-  //  }
-  //  GetData();
+  useEffect(async () => {
+
+    // si no hay user hay que loguearse 
+    const user = AuthService.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      setShowClienteBoard(user.roles.includes("ROLE_USER"));
+      setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+    } else {
+      props.history.push(process.env.PUBLIC_URL + "/login");
+    }
+
+    const GetData = async () => {
+      try {
+        const response = await UserService.getBalanceid(id);
+        if (response) {
+          var consola = response;
+          //dataNueva.map(consola => {
+          formik.initialValues.nombre = consola.nombre;
+          formik.initialValues.categoria = consola.categoria;
+          formik.initialValues.categoriaid = consola.categoriaid;
+          formik.initialValues.fecha = consola.fecha;
+          formik.initialValues.importe = consola.importe;
+          formik.initialValues.nota = consola.nota;
+          formik.initialValues.tipo = consola.tipo;
+          formik.initialValues.id = consola.id;
+          //})
+
+          //setDatos(dataNueva);
+        } else {
+          props.history.push(process.env.PUBLIC_URL + "/login");
+        }
+      } catch (e) {
+        props.history.push(process.env.PUBLIC_URL + "/login");
+      }
+    }
+    GetData();
 
     const GetDato = async () => {
       try {
         const result = await UserService.getCategorias();
         if (result) {
-          setData1(result.data);
+          setData(result);
         } else {
-          // props.history.push(process.env.PUBLIC_URL + "/login");
+          props.history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
-        //props.history.push(process.env.PUBLIC_URL + "/login");
+        props.history.push(process.env.PUBLIC_URL + "/login");
       }
     }
     GetDato();
@@ -196,188 +216,145 @@ export default function Balancemod(props) {
     </div>
   )
 
-  const queryClient = useQueryClient();
-  //console.log(balanceQuery);
-  //const balanceQuery = queryClient.setQueryData('balance', () => UserService.getBalance());
-  const balanceQuery = useQuery('balance', () => UserService.getBalance(),
-  {
-    initialData: () => {
-      // Get the query state
-      const state = queryClient.getQueryState('balance')
-      console.log(state);
-      // If the query exists and has data that is no older than 10 seconds...
-      if (state && Date.now() - state.dataUpdatedAt <= 10 * 1000) {
-        // return the individual todo
-      return state.data()
-      }
-
-    }, 
-    staleTime: Infinity,
-  });
-
- //const ba = queryClient.getQueryData(['balance', '6234d19b77910e6cd5749af4']);
-  const ba = queryClient.getQueryData(['balance','id']).find(data => data.id === id);
-  console.log(ba);
-
- 
-        if (ba) {
-          //var dataNueva = ba;
-          //dataNueva.map(consola => {
-            formik.initialValues.nombre = ba.nombre;
-            formik.initialValues.categoria = ba.categoriaid;
-            formik.initialValues.fecha = ba.fecha;
-            formik.initialValues.importe = ba.importe;
-            formik.initialValues.nota = ba.nota;
-            formik.initialValues.tipo = ba.tipo;
-            formik.initialValues.id = ba.id;
-           //setData(response.data);
-          //})
-        }
- 
-  const mutation = useMutation(async () => UserService.addmodBalance(id, formik.values), {
-    onMutate: async data => {
-      await queryClient.cancelQueries(['balance','id', id]);
-      const previousTodo = queryClient.getQueryData(['balance','id']);
-      console.log(previousTodo);
-      queryClient.setQueryData(['balance','id', id], formik.values)
-    },
-    onSuccess: data => {
-    },
-    onSettled: data =>  {
-      queryClient.invalidateQueries(['balance', {id:id}])
-      console.log('final');
-    },
-    onError: function (error) {
-      console.log('error');
-    }
-  });
-
-  //mutation.mutate(formik.values);
-
-
   return (
-    <Paper className={classes.root}>
 
-      <Breadcrumbs aria-label="breadcrumb">
-        <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => inicio()}>Inicio</Button>
-      </Breadcrumbs>
+    <Paper>
 
-      <div className={styles.modal}>
-        <form onSubmit={formik.handleSubmit} >
-          <h3>Modificar movimiento</h3>
-          <Grid container spacing={3}>
+      <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
+        <Toolbar>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
+            <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
+          </IconButton>
+          <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
+            Modificar
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-            <Grid item xs={6}>
-              <TextField
-                name="nombre"
-                className={styles.inputMaterial}
-                label="Nombre"
-                autoFocus={true}
-                value={formik.values.nombre}
-                onChange={formik.handleChange}
-                error={formik.touched.nombre && Boolean(formik.errors.nombre)}
-                helperText={formik.touched.nombre && formik.errors.nombre}
-              />
+      <Container fixed>
+        <Box sx={{ bgcolor: '#cfe8fc', height: '100vh', display: 'flex' }} >
+
+          <form onSubmit={formik.handleSubmit}>
+
+            <Grid container spacing={3} style={{ minHeight: '100vh' }} >
+
+              <Grid item xs={12}>
+                <TextField
+                  id="date"
+                  type="date"
+                  defaultValue="2021-08-25"
+                  name="fecha"
+                  label="Fecha"
+                  className={classes.textField}
+                  error={formik.touched.fecha && Boolean(formik.errors.fecha)}
+                  helperText={formik.touched.fecha && formik.errors.fecha}
+                  onChange={formik.handleChange}
+                  value={formik.values.fecha}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={6}>
+                <TextField
+                  name="nombre"
+                  className={styles.inputMaterial}
+                  label="Concepto"
+                  autoFocus={true}
+                  autoComplete='off'
+                  value={formik.values.nombre}
+                  onChange={formik.handleChange}
+                  error={formik.touched.nombre && Boolean(formik.errors.nombre)}
+                  helperText={formik.touched.nombre && formik.errors.nombre}
+                />
+              </Grid>
+
+              <Grid item xs={6}>
+                <TextField
+                  name="importe"
+                  className={styles.inputMaterial}
+                  label="Importe"
+                  autoComplete='off'
+                  value={formik.values.importe}
+                  onChange={formik.handleChange}
+                  error={formik.touched.importe && Boolean(formik.errors.importe)}
+                  helperText={formik.touched.importe && formik.errors.importe}
+                />
+              </Grid>
+
+              <Grid item xs={6}>
+                <InputLabel htmlFor="outlined-age-native-simple">Categoria
+                  <AddCircleIcon onClick={() => abrirCerrarModalInsertar()} />
+                </InputLabel>
+                <Select
+                  native
+                  label="Categoria"
+                  inputProps={{
+                    name: 'categoriaid',
+                    id: 'outlined-age-native-simple',
+                  }}
+                  className={styles.inputMaterial}
+                  value={formik.values.categoriaid}
+                  onChange={formik.handleChange}
+                  error={formik.touched.categoriaid && Boolean(formik.errors.categoriaid)}
+                  helperText={formik.touched.categoriaid && formik.errors.categoriaid}
+                >
+                  <option aria-label="None" value="" />
+                  {data.map((value) => (
+                    <option value={value.id} key={value.id}>
+                      {value.nombre}
+                    </option>
+                  ))}
+                </Select>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextareaAutosize
+                  name="nota"
+                  className={styles.inputMaterial}
+                  minRows={3} label="Nota"
+                  placeholder="Nota"
+                  value={formik.values.nota}
+                  onChange={formik.handleChange}
+                  error={formik.touched.nota && Boolean(formik.errors.nota)}
+                  helperText={formik.touched.nota && formik.errors.nota}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <div align="center" style={{ background: '#fff159' }} >
+                  <Button color="primary" type="submit">Modificar</Button>
+                </div>
+              </Grid>
+
             </Grid>
 
-            <Grid item xs={6}>
-              <InputLabel htmlFor="outlined-age-native-simple">Categoria</InputLabel>
-              <Select
-                native
-                label="Categoria"
-                inputProps={{
-                  name: 'categoria',
-                  id: 'outlined-age-native-simple',
-                }}
-                value={formik.values.categoria}
-                onChange={formik.handleChange}
-                error={formik.touched.categoria && Boolean(formik.errors.categoria)}
-                helperText={formik.touched.categoria && formik.errors.categoria}
-              >
-                <option aria-label="None" value="" />
-                {data1.map((value) => (
-                  <option value={value.id} key={value.id}>
-                    {value.nombre}
-                  </option>
-                ))}
-              </Select>
+            <TextField
+              name="tipo"
+              type="hidden"
+              value={formik.values.tipo}
+              onChange={formik.handleChange}
+              error={formik.touched.tipo && Boolean(formik.errors.tipo)}
+              helperText={formik.touched.tipo && formik.errors.tipo}
+            />
 
-              <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => abrirCerrarModalInsertar()}>Nueva Categoria</Button>
+          </form>
 
-            </Grid>
+          <Modal
+            open={modalInsertar}
+            onClose={abrirCerrarModalInsertar}>
+            {bodyInsertar}
+          </Modal>
 
-            <Grid item xs={6}>
-              <TextField
-                required
-                id="date"
-                type="date"
-                defaultValue="2021-08-25"
-                name="fecha"
-                label="Fecha"
-                className={classes.textField}
-                error={formik.touched.fecha && Boolean(formik.errors.fecha)}
-                helperText={formik.touched.fecha && formik.errors.fecha}
-                onChange={formik.handleChange}
-                value={formik.values.fecha}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={6}>
-              <TextField
-                name="importe"
-                className={styles.inputMaterial}
-                label="Importe"
-                value={formik.values.importe}
-                onChange={formik.handleChange}
-                error={formik.touched.importe && Boolean(formik.errors.importe)}
-                helperText={formik.touched.importe && formik.errors.importe}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextareaAutosize
-                name="nota"
-                aria-label="empty textarea"
-                className={styles.inputMaterial}
-                minRows={3} label="Nota"
-                placeholder="Nota"
-                value={formik.values.nota}
-                onChange={formik.handleChange}
-                error={formik.touched.nota && Boolean(formik.errors.nota)}
-                helperText={formik.touched.nota && formik.errors.nota}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                name="tipo"
-                type="hidden"
-                value={formik.values.tipo}
-                onChange={formik.handleChange}
-                error={formik.touched.tipo && Boolean(formik.errors.tipo)}
-                helperText={formik.touched.tipo && formik.errors.tipo}
-              />
-            </Grid>
-
-          </Grid>
-
-          <div align="right">
-            <Button color="primary" type="submit">Modificar</Button>
-            <Button color="primary" onClick={() => cerrarEditar()}>Cancelar</Button>
-          </div>
-        </form>
-
-      </div>
-
-      <Modal
-        open={modalInsertar}
-        onClose={abrirCerrarModalInsertar}>
-        {bodyInsertar}
-      </Modal>
-
+        </Box>
+      </Container>
     </Paper>
   );
 }

@@ -14,6 +14,8 @@ import { registerRoute } from "workbox-routing";
 import { StaleWhileRevalidate, NetworkFirst, NetworkOnly } from "workbox-strategies";
 import { BackgroundSyncPlugin } from "workbox-background-sync";
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+import { openDB, deleteDB, wrap, unwrap } from 'idb';
+import { mdiConsoleLine } from "@mdi/js";
 
 clientsClaim();
 
@@ -72,38 +74,132 @@ self.addEventListener("message", (event) => {
   }
 });
 
-//Capturamos algunas consultas para porer trabajar offline
-registerRoute(({ url }) => {
-  return url.origin === 'https://devapi.findemes.ar' && url.pathname.startsWith('/api/v1/getlivedev');
-},
-  new NetworkFirst({
-    cacheName: "api-live",
-  })
-);
+// Creamos base 
+//self.addEventListener("activate", (event) => {
 
-registerRoute(({ url }) => {
-  return url.origin === 'https://devapi.findemes.ar' && url.pathname.startsWith('/api/v1/getbalance');
-},
-  new NetworkFirst({
-    cacheName: "api-balance",
-  })
-);
+//  openDB('findemes', 1, {
+//    upgrade(db) {
+//      db.createObjectStore('balance', { keyPath: 'id', autoIncrement: true });
+//      db.createObjectStore('categorias', { keyPath: 'id', autoIncrement: true });
+//      db.createObjectStore('total', { keyPath: 'id', autoIncrement: true });
+//      console.log('Bases de datos y tablas creadas...');
+//    },
+//  });
+//
+//});
 
-registerRoute(({ url }) => {
-  return url.origin === 'https://devapi.findemes.ar' && url.pathname.startsWith('/api/v1/gettotal');
-},
-  new NetworkFirst({
-    cacheName: "api-total",
-  })
-);
+//Capturamos algunas consultas para poder trabajar offline
+//registerRoute(({ url }) => {
+//  return url.origin === 'https://devapi.findemes.ar' && url.pathname.startsWith('/api/v1/getlivedev');
+//},
+//  new NetworkFirst({
+//    cacheName: "api-live",
+//  })
+//);
 
-registerRoute(({ url }) => {
-  return url.origin === 'https://devapi.findemes.ar' && url.pathname.startsWith('/api/v1/getcategorias');
-},
-  new NetworkFirst({
-    cacheName: "api-categorias",
-  })
-);
+//registerRoute(new RegExp('https://devapi.findemes.ar/api/v1/getbalance'), function (event) {
+//  fetch(event.url)
+//    .then((response) => {
+//      var cloneRes = response.clone()
+//      console.log(cloneRes)
+//      cloneRes.json()
+//        .then((body) => {
+//          //localforage.setItem(event.url.pathname, body)
+//        })
+//      return response
+//   })
+//    .catch(function (error) {
+//      console.warn(`Constructing a fallback response, due to an error while fetching the real response:, ${error}`)
+//      localforage.getItem(event.url.pathname)
+//        .then((res) => {
+//          let payload = new Response(JSON.stringify(res), {
+//            "status": 200,
+//            "statusText": "MyCustomResponse!"
+//          })
+//        console.log(payload)
+//          return payload
+//        })
+//    })
+//});
+
+//registerRoute(
+// Swap this out for whatever criteria you need.
+//  ({ url }) => url.origin === 'https://devapi.findemes.ar' && url.pathname.startsWith('/api/v1/getbalance'),
+// As before, this assumes that customResponseLogic()
+// takes a FetchEvent and returns a Promise for a Response.
+//({ event }) => customResponseLogic(event),
+//({ request }) => customResponseLogic(request),
+//({ response }) => customResponseLogic(response),
+
+// Make sure you include 'POST' here!
+//'POST'
+//);
+
+//function customResponseLogic(req) {
+//    console.log(req);
+//    req.clone.text().then(body => {
+//      console.log('entra aca ?');
+//      console.log(/    })
+// Prevent the default, and handle the request ourselves.
+//event.respondWith(async function() {
+// Try to get the response from a cache.
+//  const cachedResponse = await caches.match(event.request);
+// Return it if we found one.
+//  if (cachedResponse) return cachedResponse;
+// If we didn't find a match in the cache, use the network.
+//  return fetch(event.request);
+//}());
+//}
+
+//registerRoute(({ url }) => {
+//  url.origin === 'https://devapi.findemes.ar' && url.pathname.startsWith('/api/v1/getbalance').
+//    fetch(url).then((response) => {
+//      var cloneRes = response.clone()
+//      console.log(cloneRes)
+//      cloneRes.json()
+//        .then((body) => {
+//         //localforage.setItem(event.url.pathname, body)
+//       })
+//    return response
+//  })
+//  .catch(function (error) {
+//    console.warn(`Constructing a fallback response, due to an error while fetching the real response:, ${error}`)
+//    localforage.getItem(event.url.pathname)
+//      .then((res) => {
+//         let payload = new Response(JSON.stringify(res), {
+//           "status": 200,
+//           "statusText": "MyCustomResponse!"
+//         })
+//         console.log(payload)
+//         return payload
+//       })
+//  })
+//});
+
+//new NetworkFirst({
+//  cacheName: "api-balance",
+//})
+//);
+
+//registerRoute(({ url }) => {
+//  return url.origin === 'https://devapi.findemes.ar' && url.pathname.startsWith('/api/v1/gettotal');
+//},
+//  new NetworkFirst({
+//    cacheName: "api-total",
+//  })
+//);
+
+//registerRoute(({ url }) => {
+//  return url.origin === 'https://devapi.findemes.ar' && url.pathname.startsWith('/api/v1/getcategorias');
+//},
+//  new NetworkFirst({
+//    cacheName: "api-categorias",
+//  })
+//);
+
+//if ('sync' in self.registration) {
+//  console.log('Background sync is natively supported');
+//}
 
 // Capturamos las url para guardar datos offline.
 //const bgSyncPlugin = new BackgroundSyncPlugin("POST-que", {

@@ -10,9 +10,14 @@ import { useState, useEffect } from 'react'
 import { makeStyles } from '@mui/styles';
 
 import Paper from '@mui/material/Paper';
-import { Modal, Button } from '@mui/material/';
+import AppBar from '@mui/material/AppBar';
+import CssBaseline from '@mui/material/CssBaseline';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Typography from '@mui/material/Typography';
 
-import Breadcrumbs from '@mui/material/Breadcrumbs';
+import { Modal, Button } from '@mui/material';
 
 import {
   Grid,
@@ -25,11 +30,8 @@ import { createTheme } from "@mui/material/styles";
 
 import MaterialTable from 'material-table';
 
+import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
-
-import { useOnlineStatus } from "./useOnlineStatus";
-
-import { useQuery } from 'react-query'
 
 let direction = "ltr";
 
@@ -69,7 +71,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Categorias(props) {
-  const isOnline = useOnlineStatus();
+
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [showClienteBoard, setShowClienteBoard] = useState(false);
+  const [showAdminBoard, setShowAdminBoard] = useState(false);
 
   const styles = useStyles();
   const classes = useStyles();
@@ -110,8 +115,6 @@ export default function Categorias(props) {
     (caso === 'Editar') ? props.history.push(process.env.PUBLIC_URL + "/categoriasmod/" + consola.id) : abrirCerrarModalEliminar()
   }
 
-  const categoriasQuery = useQuery('categorias');
-
   const bodyEliminar = (
     <div className={styles.modal}>
       <p>Estás seguro que deseas eliminar la Categoria <b>{consolaSeleccionada && consolaSeleccionada.nombre}</b> ? </p>
@@ -122,19 +125,62 @@ export default function Categorias(props) {
     </div>
   )
 
+  useEffect(() => {
+
+    // si no hay user hay que loguearse 
+    const user = AuthService.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      setShowClienteBoard(user.roles.includes("ROLE_USER"));
+      setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+    } else {
+      props.history.push(process.env.PUBLIC_URL + "/login");
+    }
+
+    const GetCategorias = async () => {
+      try {
+        const result = await UserService.getCategorias();
+        if (result) {
+          setData(result);
+        } else {
+          props.history.push(process.env.PUBLIC_URL + "/login");
+        }
+      } catch (e) {
+        props.history.push(process.env.PUBLIC_URL + "/login");
+      }
+    }
+    GetCategorias();
+
+  }, []);
+
   return (
     <Paper className={classes.root}>
 
-      <Breadcrumbs aria-label="breadcrumb">
-        <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => inicio()}>Inicio</Button>
-        <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => abrirCerrarModalInsertar()}>Nueva Categoria</Button>
-      </Breadcrumbs>
+      <CssBaseline />
+
+      <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
+        <Toolbar>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
+            <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
+          </IconButton>
+          <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
+            Categorias
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={theme}>
           <div style={{ maxWidth: "100%", direction }}>
             <Grid container>
               <Grid item xs={12}>
+
                 <MaterialTable
                   title=""
 
@@ -150,8 +196,6 @@ export default function Categorias(props) {
                         deleteText: 'Estas seguro de eliminar este registro ?'
                       }
                     },
-
-
                   }}
 
                   columns={[
@@ -160,7 +204,7 @@ export default function Categorias(props) {
                       field: 'nombre',
                     },
                   ]}
-                  data={categoriasQuery.data}
+                  data={data}
                   actions={[
                     {
                       icon: 'edit',
@@ -175,8 +219,8 @@ export default function Categorias(props) {
                   ]}
                   options={{
                     headerStyle: {
-                      backgroundColor: '#2e7d32',
-                      color: '#FFF',
+                      backgroundColor: '#fff159',
+                      color: '#000',
                     },
                     search: true,
                     actionsColumnIndex: -1
@@ -194,6 +238,7 @@ export default function Categorias(props) {
           </div>
         </ThemeProvider>
       </StyledEngineProvider>
+
     </Paper>
   );
 }

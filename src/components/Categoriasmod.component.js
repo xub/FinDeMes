@@ -21,6 +21,7 @@ import * as yup from 'yup';
 
 import UserService from "../services/user.service";
 
+import AuthService from "../services/auth.service";
 import { useOnlineStatus } from "./useOnlineStatus";
 
 //Validacion del formulario
@@ -83,6 +84,10 @@ export default function Categoriasmod(props) {
     },
   });
 
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [showClienteBoard, setShowClienteBoard] = useState(false);
+  const [showAdminBoard, setShowAdminBoard] = useState(false);
+
   const { id } = useParams();
 
   const styles = useStyles();
@@ -100,6 +105,16 @@ export default function Categoriasmod(props) {
   }
 
   useEffect(() => {
+
+    // si no hay user hay que loguearse 
+    const user = AuthService.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      setShowClienteBoard(user.roles.includes("ROLE_USER"));
+      setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+    } else {
+      props.history.push(process.env.PUBLIC_URL + "/login");
+    }
 
     const GetData = async () => {
       try {
