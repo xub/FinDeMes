@@ -82,7 +82,8 @@ const createIndexedDB = () => {
       db.createObjectStore('balance', { keyPath: 'id', autoIncrement: true });
       db.createObjectStore('categorias', { keyPath: 'id', autoIncrement: true });
       db.createObjectStore('total', { keyPath: 'id', autoIncrement: true });
-      db.createObjectStore('offline', { keyPath: 'id', autoIncrement: true });
+      db.createObjectStore('offlineAdd', { keyPath: 'id', autoIncrement: true });
+      db.createObjectStore('offlineDel', { keyPath: 'id', autoIncrement: true });
       db.createObjectStore('status', { keyPath: 'id', autoIncrement: true });
       idbcache.set('hello', 'world', 2);
     },
@@ -140,6 +141,7 @@ const Home = (props) => {
           props.history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
+        console.log(e);
         props.history.push(process.env.PUBLIC_URL + "/login");
       }
     }

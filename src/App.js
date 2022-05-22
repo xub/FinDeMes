@@ -57,38 +57,42 @@ const App = (props) => {
   );
 }
 
-const update = async ()  => {
-console.log('entra');
-  // Set a value in a store:
+//procesamos offlineAdd y offlineDel
+const updateAdd = async ()  => {
   const db = await openDB('findemes', 1);
-
   var store;
+
+  //offlineAdd
   try {
-    const store = await db.getAll('offline');
-    console.log(store);
+    const store = await db.getAll('offlineAdd');
     store.map(function (bal) {
-      //db.put('balance', bal);
       UserService.saveOffline(bal.id, bal);
-      console.log(bal);
     });
   }
   catch (e) {
     console.log('error');
   }
 
+  //offlineDel
+  try {
+    const store = await db.getAll('offlineDel');
+    store.map(function (bal) {
+      UserService.delOffline(bal.id, bal);
+    });
+  }
+  catch (e) {
+    console.log('error');
+  }
 
 }
 
 window.addEventListener('offline', () => {
-  // Update your UI to reflect that there's no connection.
-  console.log('offline');
 });
 
+//Cuando detectamos que vuelve a online hacemos update de los registros
+//guardados en indexdb offlineAdd y offlineDel
 window.addEventListener('online', () => {
-
-  // Update your UI to reflect that the connection is back.
-  console.log('online');
-  update();
+  updateAdd();
 });
 
 export default App;

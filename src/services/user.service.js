@@ -54,7 +54,6 @@ const addmodBalance = async (id, row) => {
   data.append('id', id);
   data.append('row', JSON.stringify(row));
 
-  // Set a value in a store:
   const db = await openDB('findemes', 1);
   await db.put('balance', row);
   db.close();
@@ -63,41 +62,25 @@ const addmodBalance = async (id, row) => {
 
   return (fetch(API_URL + 'addmodbalance', requestOptions).then(res => {
     if (res.ok) {
-      console.log('ok');
-      //res.text().then(text => {
-      //  const data = text && JSON.parse(text);
-      //  db.put('balance', data.data);
-      //  db.close();
-      //});
-
       return res;
     }
   }).then((res) => {
-    console.log('ok2');
     return res;
-    // Do something with the response
   }).catch((error) => {
-    addOffline(id,row);
-    console.log('error');
+    addOfflineAdd(id,row);
     return error
   }));
 
 };  
 
-const addOffline = async (id, row) => {
-  // Set a value in a store:
+//funcion auxiliar para agregar registo a indexdb en modo offline
+const addOfflineAdd = async (id, row) => {
   const db = await openDB('findemes', 1);
-  await db.put('offline', row);
+  await db.put('offlineAdd', row);
   db.close();
 }
 
-const delOffline = async (id) => {
-  // Set a value in a store:
-  const db = await openDB('findemes', 1);
-  await db.delete('offline', id);
-  db.close();
-}
-
+//envia al servidor los datos que estaban guardados en indexdb en modo offline FrontEnd
 const saveOffline = async (id, row) => {
   const data = new FormData();
   data.append('email', user.email);
@@ -108,20 +91,22 @@ const saveOffline = async (id, row) => {
 
   return (fetch(API_URL + 'addmodbalance', requestOptions).then(res => {
     if (res.ok) {
-      console.log('ok');
-
-      delOffline(id);
-    
+      delOfflineIndexDb(id);
       return res;
     }
   }).then((res) => {
-    console.log('ok2');
     return res;
-    // Do something with the response
   }).catch((error) => {
-    console.log('error');
     return error
   }));
+}
+
+//funcin auxiliar para eliminar registo de indexdb en modo offline
+const delOfflineIndexDb = async (id) => {
+  // Set a value in a store:
+  const db = await openDB('findemes', 1);
+  await db.delete('offlineAdd', id);
+  db.close();
 }
 
 //Trae el total del balance
@@ -197,7 +182,7 @@ const getBalanceid = async (id, row) => {
 
 };
 
-//elimina una movimiento
+//elimina un movimiento
 const delMovimiento = async (id) => {
   const data = new FormData();
   data.append('email', user.email);
@@ -210,8 +195,55 @@ const delMovimiento = async (id) => {
   db.close();
 
   const requestOptions = { method: 'POST', body: data, headers: authHeader() };
-  return (fetch(API_URL + 'delmovimiento', requestOptions).then(handleResponse));
+
+  return (fetch(API_URL + 'delmovimiento', requestOptions).then(res => {
+    if (res.ok) {
+      return res;
+    }
+  }).then((res) => {
+    return res;
+  }).catch((error) => {
+    addOfflineDel(id);
+    return error
+  }));
+
 };
+
+//funcion auxiliar para agregar registo a eliminar a indexdb en modo offline
+const addOfflineDel = async (id) => {
+  const db = await openDB('findemes', 1);
+  await db.put('offlineDel', id);
+  db.close();
+}
+
+//envia al servidor los datos que estaban guardados en indexdb en modo offline FrontEnd para eliminar
+const delOffline = async (id, row) => {
+  const data = new FormData();
+  data.append('email', user.email);
+  data.append('id', id);
+  data.append('row', JSON.stringify(row));
+
+  const requestOptions = { method: 'POST', body: data, headers: authHeader() };
+
+  return (fetch(API_URL + 'addmodbalance', requestOptions).then(res => {
+    if (res.ok) {
+      delOfflineIndexDb1(id);
+      return res;
+    }
+  }).then((res) => {
+    return res;
+  }).catch((error) => {
+    return error
+  }));
+}
+
+//funcin auxiliar para eliminar registo de indexdb en modo offline
+const delOfflineIndexDb1 = async (id) => {
+  // Set a value in a store:
+  const db = await openDB('findemes', 1);
+  await db.delete('offlineDel', id);
+  db.close();
+}
 
 //trae el total del balance
 const getCategoria = (id, row) => {
@@ -284,6 +316,7 @@ const getGrafico = (id, row) => {
 
 export default {
 
+  delOffline,
   register_findemes,
   getTotal,
   getBalance,
