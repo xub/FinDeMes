@@ -118,7 +118,7 @@ const Home = (props) => {
 
   useEffect(() => {
 
-   // TODO - create indexedDB database
+    // TODO - create indexedDB database
     const dbPromise = createIndexedDB();
 
     // AGREGAR ESTE IF EN TODOS LOS useEffect 
@@ -155,6 +155,7 @@ const Home = (props) => {
           props.history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
+        console.log(e);
         props.history.push(process.env.PUBLIC_URL + "/login");
       }
     }
@@ -163,10 +164,14 @@ const Home = (props) => {
     const GetTotal = async () => {
       try {
         const result = await UserService.getTotal();
-        if (result) {
-          setTotal(result[0].total);
+        console.log(result);
+        if (result.total) {
+          setTotal(result.total);
+        }else{
+          setTotal('0');
         }
       } catch (e) {
+        console.log(e);
         props.history.push(process.env.PUBLIC_URL + "/login");
       }
     }

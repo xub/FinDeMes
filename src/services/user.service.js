@@ -54,8 +54,26 @@ const addmodBalance = async (id, row) => {
   data.append('id', id);
   data.append('row', JSON.stringify(row));
 
+  //guardamos el importe en - si es gastos en indexdb
+  if (row.tipo == 'gastos') {
+    row.importe = -row.importe;
+  }
+
   const db = await openDB('findemes', 1);
+
+  //Agregamos registor a indexDB
+  //Buscamos el nombre de la categoria
+  let cat = db.transaction('categorias').objectStore('categorias');
+  let catname = await cat.get(row.categoriaid);
+  row.categoria=catname.nombre;
   await db.put('balance', row);
+
+  //traemos el total guardado en indexdb
+  let store = await db.getAll('total');
+  let total = parseFloat(store[0].total) + parseFloat(row.importe);
+  let tot = { id: '0', total };
+  db.put('total', tot);
+
   db.close();
 
   const requestOptions = { method: 'POST', body: data, headers: authHeader() };
@@ -67,14 +85,20 @@ const addmodBalance = async (id, row) => {
   }).then((res) => {
     return res;
   }).catch((error) => {
-    addOfflineAdd(id,row);
+    addOfflineAdd(id, row);
     return error
   }));
 
-};  
+};
 
 //funcion auxiliar para agregar registo a indexdb en modo offline
 const addOfflineAdd = async (id, row) => {
+
+  //guardamos el importe en - si es gastos en indexdb
+  if (row.tipo == 'gastos') {
+    row.importe = -row.importe;
+  }
+
   const db = await openDB('findemes', 1);
   await db.put('offlineAdd', row);
   db.close();
@@ -111,22 +135,28 @@ const delOfflineIndexDb = async (id) => {
 
 //Trae el total del balance
 const getTotal = async (id, row) => {
-
   const db = await openDB('findemes', 1);
   const store = await db.getAll('total');
 
-  if (store.length == 0) {
+  let update = false;
+  await idbcache.get('hello').then(val => {
+    if (!val) {
+      idbcache.remove('hello');
+      idbcache.set('hello', 'world', 2);
+      update = true;
+    }
+  });
+
+  if (store.length == 0 || update) {
     const requestOptions = { method: 'GET', headers: authHeader() };
     const data = await (fetch(API_URL + 'gettotal?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
-    const db = await openDB('findemes', 1);
-    //data.map(function (bal) {
-    db.put('total', data);
-    //});
-    db.close();
 
+    const db = await openDB('findemes', 1);
+    db.put('total', data);
+    db.close();
     return data;
   } else {
-    return store;
+    return store[0];
   }
 
 };
@@ -137,8 +167,8 @@ const getBalance = async (id, row) => {
 
   const db = await openDB('findemes', 1);
   const store = await db.getAll('balance');
-  let update = false;
 
+  let update = false;
   await idbcache.get('hello').then(val => {
     if (!val) {
       idbcache.remove('hello');
@@ -188,10 +218,21 @@ const delMovimiento = async (id) => {
   data.append('email', user.email);
   data.append('id', id);
 
-  // Set a value in a store:
+  //Buscamos el registro en indexdb para restar al total de indexdb 
   const db = await openDB('findemes', 1);
+  const store = db.transaction('balance').objectStore('balance');
+  const row = await store.get(id);
 
+  //traemos el total guardado en indexdb
+  let store1 = await db.getAll('total');
+  let importe = parseFloat(row.importe) * -1;
+  let total = parseFloat(store1[0].total) + importe;
+  let tot = { id: '0', total };
+  db.put('total', tot);
+
+  // Set a value in a store:
   await db.delete('balance', id);
+
   db.close();
 
   const requestOptions = { method: 'POST', body: data, headers: authHeader() };
