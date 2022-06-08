@@ -147,9 +147,9 @@ const Home = (props) => {
     }
     GetBalance();
 
-    const GetCategorias = async () => {
+    const GetCategories = async () => {
       try {
-        const result = await UserService.getCategorias();
+        const result = await UserService.getCategories();
         if (result) {
         } else {
           props.history.push(process.env.PUBLIC_URL + "/login");
@@ -159,7 +159,7 @@ const Home = (props) => {
         props.history.push(process.env.PUBLIC_URL + "/login");
       }
     }
-    GetCategorias();
+    GetCategories();
 
     const GetTotal = async () => {
       try {
@@ -248,52 +248,7 @@ const Home = (props) => {
   const gastos = () => {
     history.push(process.env.PUBLIC_URL + "/balanceadd/gastos")
   }
-
-  //  useQuery(["categorias"], () => UserService.getCategorias(), {
-  //    networkMode: 'offlineFirst',
-  //    onSuccess: data => {
-  //      //saveDataCategorias(data);
-  //    }
-  //  });
-
-  //  useQuery(["balance"], () => UserService.getBalance(), {
-  //    networkMode: 'offlineFirst',
-  //    onSuccess: data => {
-  //      //saveDataBalance(data);
-  //    }
-  //  });
-
-  // const {
-  //    data: posts,
-  //    error,
-  //    isLoading,
-  //    isFetching,
-  //    isIdle,
-  //    refetch,
-  //  } = useQuery(["total"], () => UserService.getTotal(), {
-  //    networkMode: 'offlineFirst',
-  //    onSuccess: data => {
-  //      //saveDataTotal(data);
-  //    }
-  //  });
-
-  //  if (isLoading) {
-  //    return (
-  //      <Box sx={{ display: 'flex' }}>
-  //        <CircularProgress />
-  //      </Box>
-  //    );
-
-  //  }
-
-  //  if (error) {
-  //    return (
-  //      <section className="alert alert-danger">
-  //        Error fetching posts: {error.message}
-  //      </section>
-  //    );
-  //  }
-
+  
   return (
     <OnlineStatusProvider>
       <IntlProvider locale={currentLocale} messages={messages}>

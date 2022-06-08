@@ -86,7 +86,7 @@ export default function Categorias(props) {
   })
 
   const peticionGet = async () => {
-    const result = await UserService.getCategorias();
+    const result = await UserService.getCategories();
     setData(result.data);
   }
 
@@ -137,9 +137,9 @@ export default function Categorias(props) {
       props.history.push(process.env.PUBLIC_URL + "/login");
     }
 
-    const GetCategorias = async () => {
+    const GetCategories = async () => {
       try {
-        const result = await UserService.getCategorias();
+        const result = await UserService.getCategories();
         if (result) {
           setData(result);
         } else {
@@ -149,7 +149,7 @@ export default function Categorias(props) {
         props.history.push(process.env.PUBLIC_URL + "/login");
       }
     }
-    GetCategorias();
+    GetCategories();
 
   }, []);
 

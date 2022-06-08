@@ -49,7 +49,7 @@ const validEmails = (email, producto) => {
 };
 
 /**
- * Get data from balance 
+ * Get data from inform of balance 
  * @param {*} row 
  * @returns 
  */
@@ -78,10 +78,72 @@ const getGrafico = (id, row) => {
 };
 
 ///////////////////////////////////
-//MODULE BALANCe
+//MODULE BALANCE
 ///////////////////////////////////
 /**
- * Add and Mod to balance  
+ * Get data from one register of balance
+ * @param {*} id 
+ * @param {*} row 
+ * @returns 
+ */
+ const getBalanceid = async (id, row) => {
+
+  const db = await openDB('findemes', 1);
+
+  var store;
+  try {
+    const store = db.transaction('balance').objectStore('balance');
+    const value = await store.get(id);
+    return value;
+  }
+  catch (e) {
+    const requestOptions = { method: 'GET', headers: authHeader() };
+    return (fetch(API_URL + 'getbalanceid?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
+  }
+
+};
+
+/**
+ * Get data from balance
+ * If the table of indexdb is empty, it searches data in red and fills it
+ * @param {*} id 
+ * @param {*} row 
+ * @returns 
+ */ 
+ const getBalance = async (id, row) => {
+
+  const db = await openDB('findemes', 1);
+  const store = await db.getAll('balance');
+
+  let update = false;
+
+  await idbcache.get('hello').then(val => {
+    if (!val) {
+      idbcache.remove('hello');
+      idbcache.set('hello', 'world', 2);
+      update = true;
+    }
+  });
+
+  if (store.length == 0 || update) {
+    const requestOptions = { method: 'GET', headers: authHeader() };
+    const data = await (fetch(API_URL + 'getbalance?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
+
+    const db = await openDB('findemes', 1);
+    data.map(function (bal) {
+      db.put('balance', bal);
+    });
+    db.close();
+
+    return data;
+  } else {
+    return store;
+  }
+
+};
+
+/**
+ * Add and Mod data to balance  
  * @param {*} id 
  * @param {*} row 
  * @returns 
@@ -92,21 +154,21 @@ const addmodBalance = async (id, row) => {
   data.append('id', id);
   data.append('row', JSON.stringify(row));
 
-  //guardamos el importe en - si es gastos en indexdb
+  //save import in - if is gastos in indexdDB
   if (row.tipo == 'gastos') {
     row.importe = -row.importe;
   }
 
   const db = await openDB('findemes', 1);
 
-  //Agregamos registor a indexDB
-  //Buscamos el nombre de la categoria
+  //Add register to indexDB
+  //Search the name of the category
   let cat = db.transaction('categorias').objectStore('categorias');
   let catname = await cat.get(row.categoriaid);
   row.categoria = catname.nombre;
   await db.put('balance', row);
 
-  //traemos el total guardado en indexdb
+  //Get the total saved in indexDB
   let store = await db.getAll('total');
   let total = parseFloat(store[0].total) + parseFloat(row.importe);
   let tot = { id: '0', total };
@@ -136,7 +198,7 @@ const addmodBalance = async (id, row) => {
  */
 const addOfflineAdd = async (id, row) => {
 
-  //guardamos el importe en - si es gastos en indexdb
+  //Save import in - if is gastos in indexdDB
   if (row.tipo == 'gastos') {
     row.importe = -row.importe;
   }
@@ -217,67 +279,6 @@ const getTotal = async (id, row) => {
 };
 
 /**
- * Generate table balance
- * If the table of indexdb is empty, it searches data in red and fills it
- * @param {*} id 
- * @param {*} row 
- * @returns 
- */ 
-const getBalance = async (id, row) => {
-
-  const db = await openDB('findemes', 1);
-  const store = await db.getAll('balance');
-
-  let update = false;
-  await idbcache.get('hello').then(val => {
-    if (!val) {
-      idbcache.remove('hello');
-      idbcache.set('hello', 'world', 2);
-      update = true;
-    }
-  });
-
-  if (store.length == 0 || update) {
-    const requestOptions = { method: 'GET', headers: authHeader() };
-    const data = await (fetch(API_URL + 'getbalance?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
-
-    const db = await openDB('findemes', 1);
-    data.map(function (bal) {
-      db.put('balance', bal);
-    });
-    db.close();
-
-    return data;
-  } else {
-    return store;
-  }
-
-};
-
-/**
- * Get total balance
- * @param {*} id 
- * @param {*} row 
- * @returns 
- */
-const getBalanceid = async (id, row) => {
-
-  const db = await openDB('findemes', 1);
-
-  var store;
-  try {
-    const store = db.transaction('balance').objectStore('balance');
-    const value = await store.get(id);
-    return value;
-  }
-  catch (e) {
-    const requestOptions = { method: 'GET', headers: authHeader() };
-    return (fetch(API_URL + 'getbalanceid?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
-  }
-
-};
-
-/**
  * Delete register
  * @param {*} id 
  * @returns 
@@ -299,7 +300,7 @@ const delMovimiento = async (id) => {
   let tot = { id: '0', total };
   db.put('total', tot);
 
-  // Set a value in a store:
+  // Delete the row from the store
   await db.delete('balance', id);
 
   db.close();
@@ -374,12 +375,12 @@ const delOfflineIndexDb1 = async (id) => {
 //MODULE CATEGORY
 ///////////////////////////////////
 /**
- * Get data of a category
+ * Get data from one register of category
  * @param {*} id 
  * @param {*} row 
  * @returns 
  */
-const getCategoria = (id, row) => {
+const getCategory = async (id, row) => {
   const requestOptions = { method: 'GET', headers: authHeader() };
   return (fetch(API_URL + 'getcategoria?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
 };
@@ -390,10 +391,11 @@ const getCategoria = (id, row) => {
  * @param {*} row 
  * @returns 
  */
-const getCategorias = async (id, row) => {
+const getCategories = async (id, row) => {
 
   const db = await openDB('findemes', 1);
   const store = await db.getAll('categorias');
+  
   let update = false;
 
   await idbcache.get('hello').then(val => {
@@ -422,30 +424,100 @@ const getCategorias = async (id, row) => {
 };
 
 /**
- * Add data to a category
+ * Add and mod data to a category
  * @param {*} id 
  * @param {*} row 
  * @returns 
  */
-const addmodCategoria = (id, row) => {
+const addModCategory = async (id, row) => {
+  const data = new FormData();
+  data.append('email', user.email);
+  data.append('id', id);
+  data.append('row', JSON.stringify(row));
+
+  const db = await openDB('findemes', 1);
+ 
+  //Add register to indexDB
+  await db.put('categorias', row);
+  
+  db.close();
+
+  const requestOptions = { method: 'POST', body: data, headers: authHeader() };
+ 
+  return (fetch(API_URL + 'addmodcategorias', requestOptions).then(res => {
+    if (res.ok) {
+      return res;
+    }
+  }).then((res) => {
+    return res;
+  }).catch((error) => {
+    addOfflineAddCategory(id, row);
+    return error
+  }));
+};
+
+/**
+ * Function aux for add category register to indexDB in offline mode
+ * @param {*} id 
+ * @param {*} row 
+ */
+ const addOfflineAddCategory = async (id, row) => {
+
+  const db = await openDB('findemes', 1);
+  await db.put('offlineAddCategory', row);
+  db.close();
+}
+
+/**
+ * Send data to server in offline category mode in indexDB
+ * @param {*} id 
+ * @param {*} row 
+ * @returns 
+ */
+ const saveOfflineCategory = async (id, row) => {
   const data = new FormData();
   data.append('email', user.email);
   data.append('id', id);
   data.append('row', JSON.stringify(row));
 
   const requestOptions = { method: 'POST', body: data, headers: authHeader() };
-  return (fetch(API_URL + 'addmodcategorias', requestOptions).then(handleResponse));
-};
+
+  return (fetch(API_URL + 'addmodcategoria', requestOptions).then(res => {
+    if (res.ok) {
+      delOfflineIndexDb(id);
+      return res;
+    }
+  }).then((res) => {
+    return res;
+  }).catch((error) => {
+    return error
+  }));
+}
+
+/**
+ * Function aux for delete register to indexDB in offline category mode
+ * @param {*} id 
+ */
+ const delOfflineIndexDbCategory = async (id) => {
+  // Set a value in a store:
+  const db = await openDB('findemes', 1);
+  await db.delete('offlineAddCategory', id);
+  db.close();
+}
 
 /**
  * Delete a category
  * @param {*} id 
  * @returns 
  */
-const delCategoria = (id) => {
+const delCategory = async (id) => {
   const data = new FormData();
   data.append('email', user.email);
   data.append('id', id);
+
+  const db = await openDB('findemes', 1);
+  // Delete the row from the store
+  await db.delete('categorias', id);
 
   const requestOptions = { method: 'POST', body: data, headers: authHeader() };
   return (fetch(API_URL + 'delcategoria', requestOptions).then(handleResponse));
@@ -456,7 +528,6 @@ const delCategoria = (id) => {
 
 export default {
 
-  delOffline,
   register_findemes,
   getTotal,
   getBalance,
@@ -464,11 +535,14 @@ export default {
   addmodBalance,
   delMovimiento,
   saveOffline,
+  delOffline,
 
-  getCategoria,
-  getCategorias,
-  addmodCategoria,
-  delCategoria,
+  getCategory,
+  getCategories,
+  addModCategory,
+  delCategory,
+  saveOfflineCategory,
+  delOfflineIndexDbCategory,
 
   getGrafico,
 

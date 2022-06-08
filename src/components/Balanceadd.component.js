@@ -169,7 +169,7 @@ export default function Balanceadd(props) {
 
         const GetDato = async () => {
             try {
-                const result = await UserService.getCategorias();
+                const result = await UserService.getCategories();
                 if (result) {
                     setData(result);
                 } else {

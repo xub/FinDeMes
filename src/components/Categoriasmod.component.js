@@ -118,7 +118,7 @@ export default function Categoriasmod(props) {
 
     const GetData = async () => {
       try {
-        const response = await UserService.getCategoria(id);
+        const response = await UserService.getCategories(id);
         if (response) {
           var dataNueva = response.data;
           dataNueva.map(consola => {
