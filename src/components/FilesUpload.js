@@ -1,3 +1,9 @@
+/**
+ * PWA FinDeFes
+ * update 06/2022
+ * By Sergio Sam 
+ */
+
 import React, { useState, useEffect, useRef } from "react";
 import UploadService from "../services/user.service";
 import AuthService from "../services/auth.service";

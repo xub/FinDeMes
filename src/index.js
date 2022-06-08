@@ -1,3 +1,9 @@
+/**
+ * PWA FinDeFes
+ * update 04/2022
+ * By Sergio Sam 
+ */
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from "react-router-dom";
