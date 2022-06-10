@@ -85,11 +85,6 @@ export default function Balance(props) {
     codigo: '',
   })
 
-  const peticionGet = async () => {
-    const result = await UserService.getBalance();
-    setData(result);
-  }
-
   const peticionDelete = async () => {
     const response = await UserService.delMovimiento(consolaSeleccionada.id);
     var data = response.data;
@@ -97,6 +92,11 @@ export default function Balance(props) {
     peticionGet();
     //totalT();
     abrirCerrarModalEliminar();
+  }
+
+  const peticionGet = async () => {
+    const result = await UserService.getBalance();
+    setData(result);
   }
 
   const abrirCerrarModalEliminar = () => {
@@ -152,7 +152,7 @@ export default function Balance(props) {
     </div>
   )
 
-  return (
+  return ( 
     <Paper className={classes.root}>
 
       <CssBaseline />

@@ -116,7 +116,7 @@ export default function Balancemod(props) {
     nombre: '',
   })
 
-  let oldData = '';
+  let oldData = ''; 
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -127,7 +127,7 @@ export default function Balancemod(props) {
   }
 
   const addCategory = async () => {
-    const response = await UserService.addmodCategory(consolaSeleccionada.id, consolaSeleccionada);
+    const response = await UserService.addModCategory(consolaSeleccionada.id, consolaSeleccionada);
     setData(data.concat(response.data))
     abrirCerrarModalInsertar()
   }

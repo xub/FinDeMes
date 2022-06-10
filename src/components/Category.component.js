@@ -1,6 +1,6 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 06/2022
  * By Sergio Sam 
  */
 
@@ -86,17 +86,18 @@ export default function Category(props) {
     codigo: '',
   })
 
-  const peticionGet = async () => {
-    const result = await UserService.getCategories();
-    setData(result.data);
-  }
-
   const peticionDelete = async () => {
-    const response = await UserService.delCategory(consolaSeleccionada.id);
-    var data = response.data;
-    setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
+    //const response = await UserService.delCategory(consolaSeleccionada.id);
+    await UserService.delCategory(consolaSeleccionada.id);
+    //var data = response.data;
+    //setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
     peticionGet();
     abrirCerrarModalEliminar();
+  }
+
+  const peticionGet = async () => {
+    const result = await UserService.getCategories();
+    setData(result);
   }
 
   const inicio = () => {

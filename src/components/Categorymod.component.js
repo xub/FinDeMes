@@ -77,6 +77,7 @@ export default function Categoriasmod(props) {
   const formik = useFormik({
     initialValues: {
       nombre: '',
+      id: '',
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
@@ -89,7 +90,6 @@ export default function Categoriasmod(props) {
   const [showAdminBoard, setShowAdminBoard] = useState(false);
 
   const { id } = useParams();
-
   const styles = useStyles();
   const classes = useStyles();
 
@@ -123,6 +123,7 @@ export default function Categoriasmod(props) {
           var dataNueva = response.data;
           dataNueva.map(consola => {
             formik.initialValues.nombre = consola.nombre;
+            formik.initialValues.id = consola.id;            
           })
 
           setDatos(dataNueva);
@@ -130,7 +131,6 @@ export default function Categoriasmod(props) {
           props.history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
-        console.log(e);
         props.history.push(process.env.PUBLIC_URL + "/login");
       }
     }
