@@ -24,6 +24,8 @@ import UserService from "../services/user.service";
 import AuthService from "../services/auth.service";
 import { useOnlineStatus } from "./useOnlineStatus";
 
+import { v4 as uuidv4 } from 'uuid';
+
 //Validacion del formulario
 const validationSchema = yup.object({
     nombre: yup
@@ -59,6 +61,7 @@ export default function Categoriasadd(props) {
     const formik = useFormik({
         initialValues: {
             nombre: '',
+            id: uuidv4(),
         },
         validationSchema: validationSchema,
         onSubmit: (values) => {
@@ -77,12 +80,12 @@ export default function Categoriasadd(props) {
     const classes = useStyles();
 
     const peticionPost = async (data) => {
-        const response = await UserService.addmodCategoria(id, data);
+        const response = await UserService.addModCategory(id, data);
         cerrarEditar()
     }
 
     const cerrarEditar = () => {
-        props.history.push(process.env.PUBLIC_URL + "/categorias");
+        props.history.push(process.env.PUBLIC_URL + "/category");
     }
 
     const inicio = () => {

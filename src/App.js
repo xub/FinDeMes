@@ -17,9 +17,9 @@ import Balance from "./components/Balance.component";
 import Balanceadd from "./components/Balanceadd.component";
 import Balancemod from "./components/Balancemod.component";
 
-import Categorias from "./components/Categorias.component";
-import Categoriasadd from "./components/Categoriasadd.component";
-import Categoriasmod from "./components/Categoriasmod.component";
+import Category from "./components/Category.component";
+import Categoryadd from "./components/Categoryadd.component";
+import Categorymod from "./components/Categorymod.component";
 
 import Informes from "./components/Informes.component";
 
@@ -44,9 +44,9 @@ const App = (props) => {
       <Route exact path={`${process.env.PUBLIC_URL}/balance`} component={Balance} />
       <Route exact path={`${process.env.PUBLIC_URL}/balanceadd/:id`} component={Balanceadd} />
       <Route exact path={`${process.env.PUBLIC_URL}/balancemod/:id`} component={Balancemod} />
-      <Route exact path={`${process.env.PUBLIC_URL}/categorias`} component={Categorias} />
-      <Route exact path={`${process.env.PUBLIC_URL}/categoriasadd`} component={Categoriasadd} />
-      <Route exact path={`${process.env.PUBLIC_URL}/categoriasmod/:id`} component={Categoriasmod} />
+      <Route exact path={`${process.env.PUBLIC_URL}/category`} component={Category} />
+      <Route exact path={`${process.env.PUBLIC_URL}/categoryadd`} component={Categoryadd} />
+      <Route exact path={`${process.env.PUBLIC_URL}/categorymod/:id`} component={Categorymod} />
       <Route exact path={`${process.env.PUBLIC_URL}/login`} component={Login} />
       <Route exact path={`${process.env.PUBLIC_URL}/registrarse`} component={Register} />
       <Route exact path={`${process.env.PUBLIC_URL}/graficos`} component={Graficos} />

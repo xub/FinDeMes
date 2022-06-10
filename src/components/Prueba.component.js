@@ -146,8 +146,8 @@ export default function Balanceadd(props) {
     useEffect(() => {
     }, []);
 
-    const addCategoria = async () => {
-        const response = await UserService.addmodCategoria(consolaSeleccionada.id, consolaSeleccionada);
+    const addCategory = async () => {
+        const response = await UserService.addModCategory(consolaSeleccionada.id, consolaSeleccionada);
         setData(data1.concat(response.data))
         abrirCerrarModalInsertar()
     }
@@ -163,7 +163,7 @@ export default function Balanceadd(props) {
             <br />
             <br /><br />
             <div align="right">
-                <Button color="primary" onClick={() => addCategoria()}>Crear</Button>
+                <Button color="primary" onClick={() => addCategory()}>Crear</Button>
                 <Button onClick={() => abrirCerrarModalInsertar()}>Cancelar</Button>
             </div>
         </div>

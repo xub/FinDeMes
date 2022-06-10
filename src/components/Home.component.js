@@ -164,7 +164,6 @@ const Home = (props) => {
     const GetTotal = async () => {
       try {
         const result = await UserService.getTotal();
-        console.log(result);
         if (result.total) {
           setTotal(result.total);
         }else{
@@ -442,7 +441,7 @@ const Home = (props) => {
                   <Grid item xs>
                     <Grid item xs container direction="column" spacing={2}>
                       <Typography gutterBottom variant="subtitle1">
-                        <Link to={`${process.env.PUBLIC_URL}/categorias`} className="nav-link">
+                        <Link to={`${process.env.PUBLIC_URL}/category`} className="nav-link">
                           <Icon path={mdiBookMultipleOutline}
                             title="Categorias"
                             size={3}

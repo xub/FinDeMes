@@ -1,6 +1,6 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 06/2022
  * By Sergio Sam 
  */
 
@@ -96,12 +96,12 @@ export default function Categoriasmod(props) {
   const [datos, setDatos] = useState([]);
 
   const peticionPost = async (values) => {
-    const response = await UserService.addmodCategoria(id, values);
+    const response = await UserService.addModCategory(id, values);
     cerrarEditar()
   }
 
   const cerrarEditar = () => {
-    props.history.push(process.env.PUBLIC_URL + "/categorias");
+    props.history.push(process.env.PUBLIC_URL + "/category");
   }
 
   useEffect(() => {
@@ -118,7 +118,7 @@ export default function Categoriasmod(props) {
 
     const GetData = async () => {
       try {
-        const response = await UserService.getCategories(id);
+        const response = await UserService.getCategory(id);
         if (response) {
           var dataNueva = response.data;
           dataNueva.map(consola => {
@@ -130,6 +130,7 @@ export default function Categoriasmod(props) {
           props.history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
+        console.log(e);
         props.history.push(process.env.PUBLIC_URL + "/login");
       }
     }

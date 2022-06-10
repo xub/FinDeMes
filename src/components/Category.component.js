@@ -16,6 +16,7 @@ import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Typography from '@mui/material/Typography';
+import Breadcrumbs from '@mui/material/Breadcrumbs';
 
 import { Modal, Button } from '@mui/material';
 
@@ -70,7 +71,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function Categorias(props) {
+export default function Category(props) {
 
   const [currentUser, setCurrentUser] = useState(undefined);
   const [showClienteBoard, setShowClienteBoard] = useState(false);
@@ -91,7 +92,7 @@ export default function Categorias(props) {
   }
 
   const peticionDelete = async () => {
-    const response = await UserService.delCategoria(consolaSeleccionada.id);
+    const response = await UserService.delCategory(consolaSeleccionada.id);
     var data = response.data;
     setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
     peticionGet();
@@ -103,7 +104,7 @@ export default function Categorias(props) {
   }
 
   const abrirCerrarModalInsertar = () => {
-    props.history.push(process.env.PUBLIC_URL + "/categoriasadd/")
+    props.history.push(process.env.PUBLIC_URL + "/categoryadd/")
   }
 
   const abrirCerrarModalEliminar = () => {
@@ -112,7 +113,7 @@ export default function Categorias(props) {
 
   const seleccionarConsola = (consola, caso) => {
     setConsolaSeleccionada(consola);
-    (caso === 'Editar') ? props.history.push(process.env.PUBLIC_URL + "/categoriasmod/" + consola.id) : abrirCerrarModalEliminar()
+    (caso === 'Editar') ? props.history.push(process.env.PUBLIC_URL + "/categorymod/" + consola.id) : abrirCerrarModalEliminar()
   }
 
   const bodyEliminar = (
@@ -174,6 +175,12 @@ export default function Categorias(props) {
           </Typography>
         </Toolbar>
       </AppBar>
+
+      <br/>
+      <Breadcrumbs aria-label="breadcrumb">
+        <Button style={{ color: "#fff", backgroundColor: "rgb(0, 79, 158)" }} variant="contained" onClick={() => inicio()}>Inicio</Button>
+        <Button style={{ color: "#fff", backgroundColor: "rgb(0, 79, 158)" }} variant="contained" onClick={() => abrirCerrarModalInsertar()}>Nueva Categoria</Button>
+      </Breadcrumbs>
 
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={theme}>
