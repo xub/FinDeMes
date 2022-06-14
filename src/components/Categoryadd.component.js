@@ -1,6 +1,6 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 06/2022
  * By Sergio Sam 
  */
 
@@ -14,7 +14,13 @@ import Paper from '@mui/material/Paper';
 import { Button, TextField } from '@mui/material';
 
 import Grid from '@mui/material/Grid';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
@@ -32,27 +38,6 @@ const validationSchema = yup.object({
         .string('Nombre de la categoria')
         .required('Nombre de la categoria'),
 });
-
-const useStyles = makeStyles((theme) => ({
-    root: {
-        width: '100%',
-    },
-    container: {
-        maxHeight: 440,
-    },
-    modal: {
-        backgroundColor: '#fff',
-        border: '2px solid #000',
-        boxShadow: 5,
-        padding: (2, 4, 3),
-    },
-    iconos: {
-        cursor: 'pointer'
-    },
-    inputMaterial: {
-        width: '100%'
-    }
-}));
 
 export default function Categoriasadd(props) {
     const isOnline = useOnlineStatus();
@@ -73,11 +58,8 @@ export default function Categoriasadd(props) {
     const [currentUser, setCurrentUser] = useState(undefined);
     const [showClienteBoard, setShowClienteBoard] = useState(false);
     const [showAdminBoard, setShowAdminBoard] = useState(false);
-   
-    const { id } = useParams();
 
-    const styles = useStyles();
-    const classes = useStyles();
+    const { id } = useParams();
 
     const peticionPost = async (data) => {
         const response = await UserService.addModCategory(id, data);
@@ -91,6 +73,42 @@ export default function Categoriasadd(props) {
     const inicio = () => {
         props.history.push(process.env.PUBLIC_URL + "/")
     }
+
+    const useStyles = makeStyles((theme) => ({
+
+        body: {
+            backgroundColor: '#fff159',
+        },
+        root: {
+            width: '100%',
+        },
+        container: {
+            maxHeight: 440,
+        },
+        modal1: {
+            position: 'absolute',
+            width: 400,
+            backgroundColor: '#fff',
+            border: '2px solid #000',
+            boxShadow: 5,
+            padding: (2, 4, 3),
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)'
+        },
+        modal: {
+            backgroundColor: '#fff',
+            border: '2px solid #000',
+            boxShadow: '5',
+            padding: (2, 4, 3),
+        },
+        iconos: {
+            cursor: 'pointer'
+        },
+        inputMaterial: {
+            width: '100%'
+        }
+    }));
 
     useEffect(() => {
 
@@ -107,41 +125,63 @@ export default function Categoriasadd(props) {
 
     }, []);
 
+    const styles = useStyles();
+    const classes = useStyles();
+
     return (
-        <Paper className={classes.root}>
 
-            <Breadcrumbs aria-label="breadcrumb">
-                <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => inicio()}>Inicio</Button>
-            </Breadcrumbs>
+        <Paper>
 
-            <div className={styles.modal}>
-                <form onSubmit={formik.handleSubmit}>
-                    <h3>Agregar Categoria</h3>
-                    <Grid container spacing={3}>
+            <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
+                <Toolbar>
+                    <IconButton
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        aria-label="menu"
+                        sx={{ mr: 2 }}
+                    >
+                        <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
+                    </IconButton>
+                    <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
+                        Nueva Categoria
+                    </Typography>
+                </Toolbar>
+            </AppBar>
 
-                        <Grid item xs={6}>
-                            <TextField
-                                name="nombre"
-                                className={styles.inputMaterial}
-                                label="Categoria"
-                                autoFocus={true}
-                                value={formik.values.nombre}
-                                onChange={formik.handleChange}
-                                error={formik.touched.nombre && Boolean(formik.errors.nombre)}
-                                helperText={formik.touched.nombre && formik.errors.nombre}
-                            />
+            <Container fixed>
+                <Box sx={{ bgcolor: '#cfe8fc', height: '100vh', display: 'flex' }} >
+
+                    <form onSubmit={formik.handleSubmit}>
+
+                        <Grid container spacing={3} style={{ minHeight: '100vh' }} >
+
+                            <Grid item xs={12}>
+                                <TextField
+                                    name="nombre"
+                                    className={styles.inputMaterial}
+                                    label="Categoria"
+                                    autoFocus={true}
+                                    value={formik.values.nombre}
+                                    onChange={formik.handleChange}
+                                    error={formik.touched.nombre && Boolean(formik.errors.nombre)}
+                                    helperText={formik.touched.nombre && formik.errors.nombre}
+                                />
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <div align="center" style={{ background: '#fff159' }} >
+                                    <Button color="primary" type="submit">Agregar {id}</Button>
+                                </div>
+                            </Grid>
+
                         </Grid>
 
+                    </form>
+ 
+                </Box>
+            </Container>
 
-                    </Grid>
-
-                    <div align="right">
-                        <Button color="primary" type="submit">Agregar</Button>
-                        <Button color="primary" onClick={() => cerrarEditar()}>Cancelar</Button>
-                    </div>
-                </form>
-
-            </div>
         </Paper>
     );
 }

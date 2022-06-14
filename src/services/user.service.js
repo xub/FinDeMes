@@ -1,6 +1,6 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 06/2022
  * By Sergio Sam 
  */
 
@@ -86,7 +86,7 @@ const getGrafico = (id, row) => {
  * @param {*} row 
  * @returns 
  */
- const getBalanceid = async (id, row) => {
+const getBalanceid = async (id, row) => {
 
   const db = await openDB('findemes', 1);
 
@@ -109,8 +109,8 @@ const getGrafico = (id, row) => {
  * @param {*} id 
  * @param {*} row 
  * @returns 
- */ 
- const getBalance = async (id, row) => {
+ */
+const getBalance = async (id, row) => {
 
   const db = await openDB('findemes', 1);
   const store = await db.getAll('balance');
@@ -381,8 +381,22 @@ const delOfflineIndexDb1 = async (id) => {
  * @returns 
  */
 const getCategory = async (id, row) => {
-  const requestOptions = { method: 'GET', headers: authHeader() };
-  return (fetch(API_URL + 'getcategoria?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
+
+  const db = await openDB('findemes', 1);
+
+  var store;
+  try {
+    const store = db.transaction('categorias').objectStore('categorias');
+    const value = await store.get(id);
+    db.close();
+    return value;
+  }
+  catch (e) {
+    const requestOptions = { method: 'GET', headers: authHeader() };
+    db.close();
+    return (fetch(API_URL + 'getcategoria?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
+  }
+
 };
 
 /**
@@ -395,7 +409,7 @@ const getCategories = async (id, row) => {
 
   const db = await openDB('findemes', 1);
   const store = await db.getAll('categorias');
-  
+
   let update = false;
 
   await idbcache.get('hello').then(val => {
@@ -436,14 +450,14 @@ const addModCategory = async (id, row) => {
   data.append('row', JSON.stringify(row));
 
   const db = await openDB('findemes', 1);
- 
+
   //Add register to indexDB
   await db.put('categorias', row);
-  
+
   db.close();
 
   const requestOptions = { method: 'POST', body: data, headers: authHeader() };
- 
+
   return (fetch(API_URL + 'addmodcategorias', requestOptions).then(res => {
     if (res.ok) {
       return res;
@@ -461,7 +475,7 @@ const addModCategory = async (id, row) => {
  * @param {*} id 
  * @param {*} row 
  */
- const addOfflineAddCategory = async (id, row) => {
+const addOfflineAddCategory = async (id, row) => {
 
   const db = await openDB('findemes', 1);
   await db.put('offlineAddCategory', row);
@@ -474,7 +488,7 @@ const addModCategory = async (id, row) => {
  * @param {*} row 
  * @returns 
  */
- const saveOfflineCategory = async (id, row) => {
+const saveOfflineCategory = async (id, row) => {
   const data = new FormData();
   data.append('email', user.email);
   data.append('id', id);
@@ -498,7 +512,7 @@ const addModCategory = async (id, row) => {
  * Function aux for delete register to indexDB in offline category mode
  * @param {*} id 
  */
- const delOfflineIndexDbCategory = async (id) => {
+const delOfflineIndexDbCategory = async (id) => {
   // Set a value in a store:
   const db = await openDB('findemes', 1);
   await db.delete('offlineAddCategory', id);

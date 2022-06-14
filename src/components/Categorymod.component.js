@@ -1,47 +1,67 @@
 /**
  * PWA FinDeFes
- * update 06/2022
+ * update 04/2022
  * By Sergio Sam 
  */
 
 import React from 'react';
-import { useState, useEffect } from 'react'
 import { useParams } from 'react-router';
+import { useState, useEffect } from 'react'
 
 import { makeStyles } from '@mui/styles';
 
 import Paper from '@mui/material/Paper';
-import { Button, TextField } from '@mui/material/';
+import { Modal, Button, TextField } from '@mui/material';
 
+import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import TextareaAutosize from '@mui/material/TextareaAutosize';
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 
-import UserService from "../services/user.service";
-
 import AuthService from "../services/auth.service";
-import { useOnlineStatus } from "./useOnlineStatus";
+import UserService from "../services/user.service";
 
 //Validacion del formulario
 const validationSchema = yup.object({
   nombre: yup
-    .string('Nombre de la categoria requerido')
-    .required('Nombre de la categoria requerido'),
+    .string('Nombre de categoria requerido')
+    .required('Nombre de categoria requerido'),
 });
 
 const useStyles = makeStyles((theme) => ({
+
+  body: {
+    backgroundColor: '#fff159',
+  },
   root: {
     width: '100%',
   },
   container: {
     maxHeight: 440,
   },
-  modal: {
+  modal1: {
+    position: 'absolute',
+    width: 400,
     backgroundColor: '#fff',
     border: '2px solid #000',
     boxShadow: 5,
+    padding: (2, 4, 3),
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)'
+  },
+  modal: {
+    backgroundColor: '#fff',
+    border: '2px solid #000',
+    boxShadow: '5',
     padding: (2, 4, 3),
   },
   iconos: {
@@ -53,30 +73,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Categoriasmod(props) {
-  const isOnline = useOnlineStatus();
-
-  const [columns, setColumns] = useState([
-    {
-      id: 'Id',
-      field: 'id',
-      hidden: true,
-    },
-    {
-      title: 'Nombre',
-      field: 'nombre'
-    },
-  ]);
-
-  //  const [data, setData] = useState([
-  //    { nombre: 'Mehmet' },
-  //    { nombre: 'Zerya Betül' },
-  //  ]);
-  const [data, setData] = useState([]);
 
   //inicializacion de variables y validacion
   const formik = useFormik({
     initialValues: {
       nombre: '',
+      nota: '',
       id: '',
     },
     validationSchema: validationSchema,
@@ -93,15 +95,17 @@ export default function Categoriasmod(props) {
   const styles = useStyles();
   const classes = useStyles();
 
-  const [datos, setDatos] = useState([]);
-
   const peticionPost = async (values) => {
-    const response = await UserService.addModCategory(id, values);
+    await UserService.addModCategory(id, values);
     cerrarEditar()
   }
 
   const cerrarEditar = () => {
-    props.history.push(process.env.PUBLIC_URL + "/category");
+    props.history.push(process.env.PUBLIC_URL + "/categorias");
+  }
+
+  const inicio = () => {
+    props.history.push(process.env.PUBLIC_URL + "/")
   }
 
   useEffect(() => {
@@ -119,17 +123,7 @@ export default function Categoriasmod(props) {
     const GetData = async () => {
       try {
         const response = await UserService.getCategory(id);
-        if (response) {
-          var dataNueva = response.data;
-          dataNueva.map(consola => {
-            formik.initialValues.nombre = consola.nombre;
-            formik.initialValues.id = consola.id;            
-          })
-
-          setDatos(dataNueva);
-        } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
-        }
+        formik.setValues(response);
       } catch (e) {
         props.history.push(process.env.PUBLIC_URL + "/login");
       }
@@ -138,46 +132,56 @@ export default function Categoriasmod(props) {
 
   }, []);
 
-  const inicio = () => {
-    props.history.push(process.env.PUBLIC_URL + "/")
-  }
-
   return (
-    <Paper className={classes.root}>
 
-      <Breadcrumbs aria-label="breadcrumb">
-        <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => inicio()}>Inicio</Button>
-      </Breadcrumbs>
+    <Paper>
 
-      <div className={styles.modal}>
-        <form onSubmit={formik.handleSubmit}>
-          <h3>Editar Categoria</h3>
+      <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
+        <Toolbar>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
+            <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
+          </IconButton>
+          <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
+            Modificar Categoria
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-          <Grid container spacing={3}>
+      <Container fixed>
+        <Box sx={{ bgcolor: '#cfe8fc', height: '100vh', display: 'flex' }} >
 
-            <Grid item xs={6}>
-              <TextField
-                name="nombre"
-                className={styles.inputMaterial}
-                label="Categoria"
-                required
-                value={formik.values.nombre}
-                onChange={formik.handleChange}
-                error={formik.touched.nombre && Boolean(formik.errors.nombre)}
-                helperText={formik.touched.nombre && formik.errors.nombre}
-              />
+          <form onSubmit={formik.handleSubmit}>
+
+            <Grid container spacing={3} style={{ minHeight: '100vh' }} >
+
+              <Grid item xs={12}>
+                <TextField
+                  name="nombre"
+                  className={styles.inputMaterial}
+                  label="Nomre de categoria"
+                  autoFocus={true}
+                  value={formik.values.nombre}
+                  onChange={formik.handleChange}
+                  error={formik.touched.nombre && Boolean(formik.errors.nombre)}
+                  helperText={formik.touched.nombre && formik.errors.nombre}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <div align="center" style={{ background: '#fff159' }} >
+                  <Button color="primary" type="submit">Modificar</Button>
+                </div>
+              </Grid>
             </Grid>
-
-          </Grid>
-
-          <div align="right">
-            <Button color="primary" type="submit">Editar</Button>
-            <Button color="primary" onClick={() => cerrarEditar()}>Cancelar</Button>
-          </div>
-        </form>
-
-
-      </div>
+          </form>
+        </Box>
+      </Container>
     </Paper>
   );
 }
+

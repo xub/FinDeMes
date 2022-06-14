@@ -109,14 +109,10 @@ export default function Balancemod(props) {
   const styles = useStyles();
   const classes = useStyles();
   const [data, setData] = useState([]);
-  const [datos, setDatos] = useState([]);
-  const [data1, setData1] = useState([]);
   const [modalInsertar, setModalInsertar] = useState(false);
   const [consolaSeleccionada, setConsolaSeleccionada] = useState({
     nombre: '',
   })
-
-  let oldData = ''; 
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -160,20 +156,16 @@ export default function Balancemod(props) {
     const GetData = async () => {
       try {
         const response = await UserService.getBalanceid(id);
+        console.log(response)
         if (response) {
-          var consola = response;
-          //dataNueva.map(consola => {
-          formik.initialValues.nombre = consola.nombre;
-          formik.initialValues.categoria = consola.categoria;
-          formik.initialValues.categoriaid = consola.categoriaid;
-          formik.initialValues.fecha = consola.fecha;
-          formik.initialValues.importe = consola.importe;
-          formik.initialValues.nota = consola.nota;
-          formik.initialValues.tipo = consola.tipo;
-          formik.initialValues.id = consola.id;
-          //})
-
-          //setDatos(dataNueva);
+          formik.initialValues.nombre = response.nombre;
+          formik.initialValues.categoria = response.categoria;
+          formik.initialValues.categoriaid = response.categoriaid;
+          formik.initialValues.fecha = response.fecha;
+          formik.initialValues.importe = response.importe;
+          formik.initialValues.nota = response.nota;
+          formik.initialValues.tipo = response.tipo;
+          formik.initialValues.id = response.id;
         } else {
           props.history.push(process.env.PUBLIC_URL + "/login");
         }

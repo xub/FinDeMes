@@ -87,10 +87,7 @@ export default function Category(props) {
   })
 
   const peticionDelete = async () => {
-    //const response = await UserService.delCategory(consolaSeleccionada.id);
     await UserService.delCategory(consolaSeleccionada.id);
-    //var data = response.data;
-    //setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
     peticionGet();
     abrirCerrarModalEliminar();
   }
@@ -177,10 +174,10 @@ export default function Category(props) {
         </Toolbar>
       </AppBar>
 
-      <br/>
+      <br />
       <Breadcrumbs aria-label="breadcrumb">
-        <Button style={{ color: "#fff", backgroundColor: "rgb(0, 79, 158)" }} variant="contained" onClick={() => inicio()}>Inicio</Button>
-        <Button style={{ color: "#fff", backgroundColor: "rgb(0, 79, 158)" }} variant="contained" onClick={() => abrirCerrarModalInsertar()}>Nueva Categoria</Button>
+        <Button style={{ color: "#000", backgroundColor: "#fff159" }} variant="contained" onClick={() => inicio()}>Inicio</Button>
+        <Button style={{ color: "#000", backgroundColor: "#fff159" }} variant="contained" onClick={() => abrirCerrarModalInsertar()}>Nueva Categoria</Button>
       </Breadcrumbs>
 
       <StyledEngineProvider injectFirst>

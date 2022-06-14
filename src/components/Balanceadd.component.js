@@ -19,10 +19,8 @@ import Select from '@mui/material/Select';
 
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import CircularProgress from '@mui/material/CircularProgress';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -30,7 +28,6 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import CssBaseline from '@mui/material/CssBaseline';
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -323,6 +320,7 @@ export default function Balanceadd(props) {
                                     <Button color="primary" type="submit">Agregar {id}</Button>
                                 </div>
                             </Grid>
+                            
                         </Grid>
 
                         <TextField
@@ -363,8 +361,8 @@ export default function Balanceadd(props) {
                         <Alert severity="warning" onClose={handleClose} sx={{ width: '100%' }}>
                             Estas sin conexion, los datos se guardaran en tu dispositivo temporalmente, cuando detectemos internet se guardaran en el servidor.
                         </Alert>
-
                     </Snackbar>
+
                 </Box>
             </Container>
 
