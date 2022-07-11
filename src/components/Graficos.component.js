@@ -1,35 +1,35 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 07/2022
  * By Sergio Sam 
  */
 
 import React, { useState, useEffect } from "react";
 
-import { Button } from '@mui/material/';
-
 import Paper from '@mui/material/Paper';
 import AppBar from '@mui/material/AppBar';
-import CssBaseline from '@mui/material/CssBaseline';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Typography from '@mui/material/Typography';
+import { useTheme, useStyles } from "./styles.js"
+import CircularProgress from '@mui/material/CircularProgress';
+
+import { useHistory } from "react-router-dom";
 
 import ReactECharts from 'echarts-for-react';
 
 import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
 
-import { useOnlineStatus } from "./useOnlineStatus";
+export default function Graficos() {
+  const history = useHistory();
 
-export default function Graficos(props) {
-
-  const isOnline = useOnlineStatus();
+  const [isLoading, setIsLoading] = useState(true)
 
   const [currentUser, setCurrentUser] = useState(undefined);
-  const [showClienteBoard, setShowClienteBoard] = useState(false);
-  const [showAdminBoard, setShowAdminBoard] = useState(false);
+  const [showclientboard, setShowClienteBoard] = useState(false);
+  const [adminborad, setShowAdminBoard] = useState(false);
 
   const [data1, setData1] = useState([]);
   const [labels, setLabels] = useState([]);
@@ -74,11 +74,12 @@ export default function Graficos(props) {
       setShowClienteBoard(user.roles.includes("ROLE_USER"));
       setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
     } else {
-      props.history.push(process.env.PUBLIC_URL + "/login");
+      history.push(process.env.PUBLIC_URL + "/login");
     }
 
     const GetData = async () => {
       try {
+        setIsLoading(true);
         const result = await UserService.getGrafico();
         if (result) {
           setData1(result.data);
@@ -91,12 +92,12 @@ export default function Graficos(props) {
             setGastos(consola.gastos);
             setIngresos(consola.ingresos);
           })
-
+          setIsLoading(false);
         } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
+          history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
-        props.history.push(process.env.PUBLIC_URL + "/login");
+        history.push(process.env.PUBLIC_URL + "/login");
       }
     }
     GetData();
@@ -104,7 +105,7 @@ export default function Graficos(props) {
   }, []);
 
   const inicio = () => {
-    props.history.push(process.env.PUBLIC_URL + "/")
+    history.push(process.env.PUBLIC_URL + "/")
   }
 
   return (
@@ -112,6 +113,7 @@ export default function Graficos(props) {
 
       <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
         <Toolbar>
+          {isLoading && <CircularProgress color="secondary" />}
           <IconButton
             size="large"
             edge="start"
@@ -123,12 +125,12 @@ export default function Graficos(props) {
             <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
           </IconButton>
           <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
-            Excel con totales por categorias
+            Grafico de Gastos e Ingresos
           </Typography>
         </Toolbar>
       </AppBar>
 
-      <ReactECharts option={options} />
+      <ReactECharts style={{ padding: '20px' }} option={options} />
     </Paper>
   );
 }

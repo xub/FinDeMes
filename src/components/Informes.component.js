@@ -1,25 +1,27 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 07/2022
  * By Sergio Sam 
  */
 
 import React from 'react';
 import { useState, useEffect } from 'react';
 
-import { makeStyles } from '@mui/styles';
-
 import { Button, TextField } from '@mui/material/';
 import Grid from '@mui/material/Grid';
 import Excel from "./Excel.component";
 import { Modal } from '@mui/material/';
+import { useTheme, useStyles } from "./styles.js"
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
 
-import CssBaseline from '@mui/material/CssBaseline';
+import { useHistory } from "react-router-dom";
+
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -27,6 +29,7 @@ import Typography from '@mui/material/Typography';
 
 import Paper from '@mui/material/Paper';
 import AppBar from '@mui/material/AppBar';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
@@ -34,50 +37,25 @@ import * as yup from 'yup';
 import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
 
-import { useOnlineStatus } from "./useOnlineStatus";
-
 //Validacion del formulario
-const validationSchema = yup.object();
+const validationSchema = yup.object({
+    fechainicio: yup
+        .string('Fecha requerida')
+        .required('Fecha requerida'),
+    fechafin: yup
+        .number('Fecha requerida')
+        .required('Fecha requerida'),
+});
 
-const useStyles = makeStyles((theme) => ({
-    root: {
-        width: '100%',
-    },
-    container: {
-        maxHeight: 440,
-    },
-    modal1: {
-        position: 'absolute',
-        width: 400,
-        backgroundColor: '#fff',
-        border: '2px solid #000',
-        boxShadow: 5,
-        padding: (2, 4, 3),
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)'
-    },
-    iconos: {
-        cursor: 'pointer'
-    },
-    inputMaterial: {
-        width: '100%'
-    }
-}));
+export default function Informes() {
+    const history = useHistory();
 
-export default function Informes(props) {
-
+    const [isLoading, setIsLoading] = useState(true)
 
     const [currentUser, setCurrentUser] = useState(undefined);
-    const [showClienteBoard, setShowClienteBoard] = useState(false);
-    const [showAdminBoard, setShowAdminBoard] = useState(false);
-    const isOnline = useOnlineStatus();
+    const [showclientboard, setShowClienteBoard] = useState(false);
+    const [adminborad, setShowAdminBoard] = useState(false);
 
-    const [datayacimientos, setDatayacimientos] = useState([]);
-    const [dataequipos, setDataequipos] = useState([]);
-
-    const [left, setLeft] = useState([]);
-    const [data, setData] = useState([]);
     const [modalQR, setModalQR] = useState(false);
     const [values, setValues] = useState([]);
     const [open, setOpen] = React.useState(false);
@@ -118,11 +96,6 @@ export default function Informes(props) {
     const styles = useStyles();
     const classes = useStyles();
 
-    const cerrarEditar = () => {
-        props.history.push("/empresas");
-    }
-
-
     useEffect(() => {
 
         // si no hay user hay que loguearse 
@@ -132,13 +105,13 @@ export default function Informes(props) {
             setShowClienteBoard(user.roles.includes("ROLE_USER"));
             setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
         } else {
-            props.history.push(process.env.PUBLIC_URL + "/login");
+            history.push(process.env.PUBLIC_URL + "/login");
         }
 
     }, []);
 
     const inicio = () => {
-        props.history.push(process.env.PUBLIC_URL + "/")
+        history.push(process.env.PUBLIC_URL + "/")
     }
 
     const bodyQR = (
@@ -168,57 +141,59 @@ export default function Informes(props) {
                 </Toolbar>
             </AppBar>
 
-            <div className={styles.modal}>
-                <form onSubmit={formik.handleSubmit}>
-                    <h3>Totales por Categorias</h3>
-                    <Grid container spacing={3}>
+            <Container fixed>
+                <Box sx={{ bgcolor: '#cfe8fc', height: '100vh', display: 'flex', marginTop: '20px' }} >
+                    <form onSubmit={formik.handleSubmit}>
+                        <h3>Totales por Categorias</h3>
+                        <Grid container spacing={3} style={{ minHeight: '100vh', padding: '20px' }}>
 
-                        <Grid item xs={6}>
-                            <TextField
-                                id="date"
-                                type="date"
-                                defaultValue="2021-08-25"
-                                name="fechainicio"
-                                label="Fecha/carga desde:"
-                                className={classes.textField}
-                                error={formik.touched.fechainicio && Boolean(formik.errors.fechainicio)}
-                                helperText={formik.touched.fechainicio && formik.errors.fechainicio}
-                                onChange={formik.handleChange}
-                                value={formik.values.fechainicio}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                            />
+                            <Grid item xs={6}>
+                                <TextField
+                                    id="date"
+                                    type="date"
+                                    defaultValue="2021-08-25"
+                                    name="fechainicio"
+                                    label="Fecha desde:"
+                                    className={classes.textField}
+                                    error={formik.touched.fechainicio && Boolean(formik.errors.fechainicio)}
+                                    helperText={formik.touched.fechainicio && formik.errors.fechainicio}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.fechainicio}
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                />
+                            </Grid>
+
+                            <Grid item xs={6}>
+                                <TextField
+                                    id="date"
+                                    type="date"
+                                    defaultValue="2021-08-25"
+                                    name="fechafin"
+                                    label="Fecha hasta:"
+                                    className={classes.textField}
+                                    error={formik.touched.fechafin && Boolean(formik.errors.fechafin)}
+                                    helperText={formik.touched.fechafin && formik.errors.fechafin}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.fechafin}
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                />
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <div align="center" style={{ background: '#fff159' }} >
+                                    <Button color="primary" type="submit">Generar Informe </Button>
+                                </div>
+                            </Grid>
+
                         </Grid>
 
-                        <Grid item xs={6}>
-                            <TextField
-                                id="date"
-                                type="date"
-                                defaultValue="2021-08-25"
-                                name="fechafin"
-                                label="Fecha/carga hasta:"
-                                className={classes.textField}
-                                error={formik.touched.fechafin && Boolean(formik.errors.fechafin)}
-                                helperText={formik.touched.fechafin && formik.errors.fechafin}
-                                onChange={formik.handleChange}
-                                value={formik.values.fechafin}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                            />
-                        </Grid>
-                        <Grid item xs={12} style={{ background: '#fff159' }}>
-                            <div align="center">
-                                <Button color="primary" type="submit">GENERAR INFORME</Button>
-                            </div>
-                        </Grid>
-
-                    </Grid>
-
-                </form>
-
-            </div>
+                    </form>
+                </Box>
+            </Container>
 
             <Dialog
                 open={open}
@@ -239,11 +214,13 @@ export default function Informes(props) {
                     </Button>
                 </DialogActions>
             </Dialog>
+
             <Modal
                 open={modalQR}
                 onClose={abrirCerrarModalQR}>
                 {bodyQR}
             </Modal>
+
         </Paper>
     );
 }

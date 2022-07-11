@@ -1,22 +1,18 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 07/2022
  * By Sergio Sam 
  */
 
 import React from 'react';
 import { useParams } from 'react-router';
 import { useState, useEffect } from 'react'
-
-import { makeStyles } from '@mui/styles';
-
 import Paper from '@mui/material/Paper';
-import { Modal, Button, TextField, Card } from '@mui/material';
+import { Modal, Button, TextField } from '@mui/material';
+import { useTheme, useStyles } from "./styles.js"
 import TextareaAutosize from '@mui/material/TextareaAutosize';
-
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
-
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Snackbar from '@mui/material/Snackbar';
@@ -28,6 +24,8 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useHistory } from "react-router-dom";
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -47,57 +45,23 @@ const validationSchema = yup.object({
         .required('Ingresa un importe'),
 });
 
-const useStyles = makeStyles((theme) => ({
-
-    body: {
-        backgroundColor: '#fff159',
-    },
-    root: {
-        width: '100%',
-    },
-    container: {
-        maxHeight: 440,
-    },
-    modal1: {
-        position: 'absolute',
-        width: 400,
-        backgroundColor: '#fff',
-        border: '2px solid #000',
-        boxShadow: 5,
-        padding: (2, 4, 3),
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)'
-    },
-    modal: {
-        backgroundColor: '#fff',
-        border: '2px solid #000',
-        boxShadow: '5',
-        padding: (2, 4, 3),
-    },
-    iconos: {
-        cursor: 'pointer'
-    },
-    inputMaterial: {
-        width: '100%'
-    }
-}));
-
-export default function Balanceadd(props) {
-
+export default function Balanceadd() {
+    const history = useHistory();
+    const [isLoading, setIsLoading] = useState(true)
+    const { id } = useParams();
     const [currentUser, setCurrentUser] = useState(undefined);
-    const [showClienteBoard, setShowClienteBoard] = useState(false);
-    const [showAdminBoard, setShowAdminBoard] = useState(false);
+    const [showclientboard, setShowClienteBoard] = useState(false);
+    const [adminborad, setShowAdminBoard] = useState(false);
 
     const [open, setOpen] = useState(false);
     const [vertical, setVertical] = useState('top');
     const [horizontal, setHorizonal] = useState('center');
 
-    const { id } = useParams();
     const [data, setData] = useState([]);
-    const [data1, setData1] = useState([]);
     const [modalInsertar, setModalInsertar] = useState(false);
+
     const [consolaSeleccionada, setConsolaSeleccionada] = useState({
+        id: '',
         nombre: '',
     });
 
@@ -140,7 +104,7 @@ export default function Balanceadd(props) {
     const classes = useStyles();
 
     const inicio = () => {
-        props.history.push(process.env.PUBLIC_URL + "/")
+        history.push(process.env.PUBLIC_URL + "/")
     }
 
     const peticionPost = async (data) => {
@@ -149,7 +113,7 @@ export default function Balanceadd(props) {
     }
 
     const cerrarEditar = () => {
-        props.history.push(process.env.PUBLIC_URL + "/balance");
+        history.push(process.env.PUBLIC_URL + "/balance");
     }
 
     useEffect(() => {
@@ -161,19 +125,21 @@ export default function Balanceadd(props) {
             setShowClienteBoard(user.roles.includes("ROLE_USER"));
             setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
         } else {
-            props.history.push(process.env.PUBLIC_URL + "/login");
+            history.push(process.env.PUBLIC_URL + "/login");
         }
 
         const GetDato = async () => {
             try {
+                setIsLoading(true);
                 const result = await UserService.getCategories();
                 if (result) {
                     setData(result);
+                    setIsLoading(false);
                 } else {
-                    props.history.push(process.env.PUBLIC_URL + "/login");
+                    history.push(process.env.PUBLIC_URL + "/login");
                 }
             } catch (e) {
-                props.history.push(process.env.PUBLIC_URL + "/login");
+                history.push(process.env.PUBLIC_URL + "/login");
             }
         }
         GetDato();
@@ -181,7 +147,7 @@ export default function Balanceadd(props) {
     }, []);
 
     const addCategory = async () => {
-        const response = await UserService.addmodCategory(consolaSeleccionada.id, consolaSeleccionada);
+        const response = await UserService.addModCategory(consolaSeleccionada.id, consolaSeleccionada);
         setData(data.concat(response.data))
         abrirCerrarModalInsertar()
     }
@@ -209,6 +175,7 @@ export default function Balanceadd(props) {
 
             <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
                 <Toolbar>
+                    {isLoading && <CircularProgress color="secondary" />}
                     <IconButton
                         size="large"
                         edge="start"
@@ -225,11 +192,11 @@ export default function Balanceadd(props) {
             </AppBar>
 
             <Container fixed>
-                <Box sx={{ bgcolor: '#cfe8fc', height: '100vh', display: 'flex' }} >
+                <Box sx={{ bgcolor: '#cfe8fc', height: '100vh', display: 'flex', marginTop: '20px' }} >
 
                     <form onSubmit={formik.handleSubmit}>
-
-                        <Grid container spacing={3} style={{ minHeight: '100vh' }} >
+ 
+                        <Grid container spacing={3} style={{ minHeight: '100vh', padding:'20px' }} >
 
                             <Grid item xs={12}>
                                 <TextField
@@ -320,7 +287,7 @@ export default function Balanceadd(props) {
                                     <Button color="primary" type="submit">Agregar {id}</Button>
                                 </div>
                             </Grid>
-                            
+
                         </Grid>
 
                         <TextField

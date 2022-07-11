@@ -1,6 +1,6 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 07/2022
  * By Sergio Sam 
  */
 
@@ -11,15 +11,12 @@ import Login from "./components/Login";
 import Register from "./components/Register_findemes.component";
 import Home from "./components/Home.component";
 
-import Prueba from "./components/Prueba.component";
-
 import Balance from "./components/Balance.component";
 import Balanceadd from "./components/Balanceadd.component";
 import Balancemod from "./components/Balancemod.component";
 
 import Category from "./components/Category.component";
-import Categoryadd from "./components/Categoryadd.component";
-import Categorymod from "./components/Categorymod.component";
+import Categoryaddmod from "./components/Categoryaddmod.component";
 
 import Informes from "./components/Informes.component";
 
@@ -39,14 +36,13 @@ const App = (props) => {
   return (
     <Switch>
       <Route exact path={`${process.env.PUBLIC_URL}/`} component={Home} />
-      <Route exact path={`${process.env.PUBLIC_URL}/prueba`} component={Prueba} />
       <Route exact path={`${process.env.PUBLIC_URL}/home`} component={Home} />
       <Route exact path={`${process.env.PUBLIC_URL}/balance`} component={Balance} />
       <Route exact path={`${process.env.PUBLIC_URL}/balanceadd/:id`} component={Balanceadd} />
       <Route exact path={`${process.env.PUBLIC_URL}/balancemod/:id`} component={Balancemod} />
       <Route exact path={`${process.env.PUBLIC_URL}/category`} component={Category} />
-      <Route exact path={`${process.env.PUBLIC_URL}/categoryadd`} component={Categoryadd} />
-      <Route exact path={`${process.env.PUBLIC_URL}/categorymod/:id`} component={Categorymod} />
+      <Route exact path={`${process.env.PUBLIC_URL}/categoryaddmod`} component={Categoryaddmod} />
+      <Route exact path={`${process.env.PUBLIC_URL}/categoryaddmod/:id`} component={Categoryaddmod} />
       <Route exact path={`${process.env.PUBLIC_URL}/login`} component={Login} />
       <Route exact path={`${process.env.PUBLIC_URL}/registrarse`} component={Register} />
       <Route exact path={`${process.env.PUBLIC_URL}/graficos`} component={Graficos} />
@@ -57,7 +53,7 @@ const App = (props) => {
   );
 }
 
-//procesamos offlineAdd y offlineDel
+//process offlineAdd y offlineDel
 const updateAdd = async ()  => {
   const db = await openDB('findemes', 1);
   var store;
@@ -89,11 +85,10 @@ const updateAdd = async ()  => {
 window.addEventListener('offline', () => {
 });
 
-//Cuando detectamos que vuelve a online hacemos update de los registros
-//guardados en indexdb offlineAdd y offlineDel
+//When detect to return online, update registri
+//save to indexdb offlineAdd y offlineDel
 window.addEventListener('online', () => {
   updateAdd();
 });
 
 export default App;
-

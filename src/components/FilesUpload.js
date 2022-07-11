@@ -46,7 +46,7 @@ const UploadFiles = ({ id, documento }) => {
   const [showClienteBoard, setShowClienteBoard] = useState(false);
   const [showAdminBoard, setShowAdminBoard] = useState(false);
   const [data, setData] = useState([]);
-
+ 
   useEffect(() => {
     const user = AuthService.getCurrentUser();
     if (user) {

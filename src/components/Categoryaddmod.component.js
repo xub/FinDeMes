@@ -1,18 +1,14 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 07/2022
  * By Sergio Sam 
  */
 
 import React from 'react';
 import { useParams } from 'react-router';
 import { useState, useEffect } from 'react'
-
-import { makeStyles } from '@mui/styles';
-
 import Paper from '@mui/material/Paper';
-import { Modal, Button, TextField } from '@mui/material';
-
+import { Button, TextField } from '@mui/material';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import AppBar from '@mui/material/AppBar';
@@ -21,7 +17,10 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import TextareaAutosize from '@mui/material/TextareaAutosize';
+import { useTheme, useStyles } from "./styles.js"
+import CircularProgress from '@mui/material/CircularProgress';
+
+import { useHistory } from "react-router-dom";
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
@@ -36,43 +35,10 @@ const validationSchema = yup.object({
     .required('Nombre de categoria requerido'),
 });
 
-const useStyles = makeStyles((theme) => ({
+export default function Categoriasaddmod() {
+  const history = useHistory();
 
-  body: {
-    backgroundColor: '#fff159',
-  },
-  root: {
-    width: '100%',
-  },
-  container: {
-    maxHeight: 440,
-  },
-  modal1: {
-    position: 'absolute',
-    width: 400,
-    backgroundColor: '#fff',
-    border: '2px solid #000',
-    boxShadow: 5,
-    padding: (2, 4, 3),
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)'
-  },
-  modal: {
-    backgroundColor: '#fff',
-    border: '2px solid #000',
-    boxShadow: '5',
-    padding: (2, 4, 3),
-  },
-  iconos: {
-    cursor: 'pointer'
-  },
-  inputMaterial: {
-    width: '100%'
-  }
-}));
-
-export default function Categoriasmod(props) {
+  const [isLoading, setIsLoading] = useState(true)
 
   //inicializacion de variables y validacion
   const formik = useFormik({
@@ -101,11 +67,11 @@ export default function Categoriasmod(props) {
   }
 
   const cerrarEditar = () => {
-    props.history.push(process.env.PUBLIC_URL + "/categorias");
+    history.push(process.env.PUBLIC_URL + "/category");
   }
 
   const inicio = () => {
-    props.history.push(process.env.PUBLIC_URL + "/")
+    history.push(process.env.PUBLIC_URL + "/")
   }
 
   useEffect(() => {
@@ -117,15 +83,21 @@ export default function Categoriasmod(props) {
       setShowClienteBoard(user.roles.includes("ROLE_USER"));
       setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
     } else {
-      props.history.push(process.env.PUBLIC_URL + "/login");
+      history.push(process.env.PUBLIC_URL + "/login");
     }
-
+ 
     const GetData = async () => {
       try {
+        setIsLoading(true);
         const response = await UserService.getCategory(id);
-        formik.setValues(response);
+        if (response) {
+          formik.setValues(response);
+          setIsLoading(false);
+        }else{
+          history.push(process.env.PUBLIC_URL + "/login");
+        }  
       } catch (e) {
-        props.history.push(process.env.PUBLIC_URL + "/login");
+        history.push(process.env.PUBLIC_URL + "/login");
       }
     }
     GetData();
@@ -138,6 +110,7 @@ export default function Categoriasmod(props) {
 
       <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
         <Toolbar>
+          {isLoading && <CircularProgress color="secondary" />}
           <IconButton
             size="large"
             edge="start"
@@ -148,17 +121,17 @@ export default function Categoriasmod(props) {
             <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
           </IconButton>
           <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
-            Modificar Categoria
+            Agregar/Modificar Categoria
           </Typography>
         </Toolbar>
       </AppBar>
 
       <Container fixed>
-        <Box sx={{ bgcolor: '#cfe8fc', height: '100vh', display: 'flex' }} >
+        <Box sx={{ bgcolor: '#cfe8fc', height: '100vh', display: 'flex', marginTop: '20px' }} >
 
           <form onSubmit={formik.handleSubmit}>
 
-            <Grid container spacing={3} style={{ minHeight: '100vh' }} >
+            <Grid container spacing={3} style={{ minHeight: '100vh', padding:'20px' }} >
 
               <Grid item xs={12}>
                 <TextField

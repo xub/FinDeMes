@@ -1,22 +1,22 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 06/2022
  * By Sergio Sam 
  */
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from "react-router-dom";
 import './index.css';
 import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
 
-ReactDOM.render(
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
   <BrowserRouter>
-      <App />
+    <App />
   </BrowserRouter>,
-  document.getElementById("root")
 );
 
 // If you want your app to work offline and load faster, you can change

@@ -89,17 +89,17 @@ const getGrafico = (id, row) => {
 const getBalanceid = async (id, row) => {
 
   const db = await openDB('findemes', 1);
-
+//probando consulta online 
   var store;
-  try {
-    const store = db.transaction('balance').objectStore('balance');
-    const value = await store.get(id);
-    return value;
-  }
-  catch (e) {
+  //try {
+  //  const store = db.transaction('balance').objectStore('balance');
+  //  const value = await store.get(id);
+  //  return value;
+  //}
+  //catch (e) {
     const requestOptions = { method: 'GET', headers: authHeader() };
     return (fetch(API_URL + 'getbalanceid?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
-  }
+  //}
 
 };
 
@@ -115,7 +115,8 @@ const getBalance = async (id, row) => {
   const db = await openDB('findemes', 1);
   const store = await db.getAll('balance');
 
-  let update = false;
+  //let update = false;
+  let update = true;
 
   await idbcache.get('hello').then(val => {
     if (!val) {
@@ -384,18 +385,18 @@ const getCategory = async (id, row) => {
 
   const db = await openDB('findemes', 1);
 
-  var store;
-  try {
-    const store = db.transaction('categorias').objectStore('categorias');
-    const value = await store.get(id);
-    db.close();
-    return value;
-  }
-  catch (e) {
+  //var store;
+  //try {
+  //  const store = db.transaction('categorias').objectStore('categorias');
+  //  const value = await store.get(id);
+  //  db.close();
+  //  return value;
+  //}
+  //catch (e) {
     const requestOptions = { method: 'GET', headers: authHeader() };
     db.close();
     return (fetch(API_URL + 'getcategoria?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
-  }
+  //}
 
 };
 

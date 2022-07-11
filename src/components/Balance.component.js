@@ -1,13 +1,11 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 07/2022
  * By Sergio Sam 
  */
 
 import React from 'react';
 import { useState, useEffect } from 'react'
-
-import { makeStyles } from '@mui/styles';
 
 import Paper from '@mui/material/Paper';
 import AppBar from '@mui/material/AppBar';
@@ -17,66 +15,30 @@ import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Typography from '@mui/material/Typography';
 import { Modal, Button } from '@mui/material';
-
-import {
-  Grid,
-  ThemeProvider,
-  StyledEngineProvider,
-  adaptV4Theme,
-} from "@mui/material";
-
-import { createTheme } from "@mui/material/styles";
+import { useTheme, useStyles } from "./styles.js"
+import { Grid, ThemeProvider, StyledEngineProvider } from "@mui/material";
+import CircularProgress from '@mui/material/CircularProgress';
 
 import MaterialTable from 'material-table';
 
+import { useHistory } from "react-router-dom";
+ 
 import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
 
 let direction = "ltr";
 
-const theme = createTheme(
-  adaptV4Theme({
-    direction: direction,
-    palette: {
-      mode: "light",
-    },
-  })
-);
+export default function Balance() {
+  const history = useHistory();
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: '100%',
-  },
-  container: {
-    maxHeight: 440,
-  },
-  modal: {
-    position: 'absolute',
-    width: 400,
-    backgroundColor: '#fff',
-    border: '2px solid #000',
-    boxShadow: 5,
-    padding: (2, 4, 3),
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)'
-  },
-  iconos: {
-    cursor: 'pointer'
-  },
-  inputMaterial: {
-    width: '100%'
-  }
-}));
-
-export default function Balance(props) {
- 
+  const [isLoading, setIsLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState(undefined);
   const [showClienteBoard, setShowClienteBoard] = useState(false);
   const [showAdminBoard, setShowAdminBoard] = useState(false);
 
   const styles = useStyles();
   const classes = useStyles();
+  const theme = useTheme;
   const [modalEliminar, setModalEliminar] = useState(false);
   const [data, setData] = useState([]);
   const [consolaSeleccionada, setConsolaSeleccionada] = useState({
@@ -106,12 +68,12 @@ export default function Balance(props) {
   const seleccionarConsola = (consola, caso) => {
     setConsolaSeleccionada(consola);
     (caso === 'Editar') ?
-      props.history.push(process.env.PUBLIC_URL + "/balancemod/" + consola.id) :
+      history.push(process.env.PUBLIC_URL + "/balancemod/" + consola.id) :
       abrirCerrarModalEliminar()
   }
 
   const inicio = () => {
-    props.history.push(process.env.PUBLIC_URL + "/")
+    history.push(process.env.PUBLIC_URL + "/")
   }
 
   useEffect(() => {
@@ -123,19 +85,21 @@ export default function Balance(props) {
       setShowClienteBoard(user.roles.includes("ROLE_USER"));
       setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
     } else {
-      props.history.push(process.env.PUBLIC_URL + "/login");
+      history.push(process.env.PUBLIC_URL + "/login");
     }
 
     const GetBalance = async () => {
       try {
+        setIsLoading(true);
         const result = await UserService.getBalance();
         if (result) {
           setData(result);
+          setIsLoading(false);
         } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
+          history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
-        props.history.push(process.env.PUBLIC_URL + "/login");
+        history.push(process.env.PUBLIC_URL + "/login");
       }
     }
     GetBalance();
@@ -152,13 +116,14 @@ export default function Balance(props) {
     </div>
   )
 
-  return ( 
+  return (
     <Paper className={classes.root}>
 
       <CssBaseline />
 
       <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
         <Toolbar>
+          {isLoading && <CircularProgress color="secondary" />}
           <IconButton
             size="large"
             edge="start"
@@ -173,6 +138,7 @@ export default function Balance(props) {
           </Typography>
         </Toolbar>
       </AppBar>
+
 
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={theme}>

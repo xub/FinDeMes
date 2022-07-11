@@ -1,6 +1,6 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 07/2022
  * By Sergio Sam 
  */
 
@@ -8,7 +8,6 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { mdiBookMultipleOutline, mdiPlusCircle, mdiMinusCircle, mdiChartBar, mdiFormatListBulleted, mdiSortVariant } from '@mdi/js'
 import Icon from '@mdi/react';
-import { makeStyles } from '@mui/styles';
 
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -43,38 +42,12 @@ import UserService from "../services/user.service";
 import { ServiceWorkerUpdateListener } from '../ServiceWorkerUpdateListener.js'
 import logo from '../logo1.svg';
 
-//import { useQuery, useQueryClient, onlineManager } from "react-query";
-import { openDB, deleteDB, wrap, unwrap } from 'idb';
-//import { get, set, del, createStore } from "idb-keyval";
+import { openDB } from 'idb';
 import idbcache from 'idbcache';
 
-const useStyles = makeStyles((theme) => ({
-  pie: {
-  },
-  root: {
-    flexGrow: 1,
-  },
-  menuButton: {
-    marginRight: '2px',
-  },
-  title: {
-    flexGrow: 1,
-  },
-  logo: {
-    maxWidth: 900,
-  },
-  modal: {
-    position: 'absolute',
-    width: 400,
-    border: '2px solid #000',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)'
-  },
+import { useStyles } from "./styles.js"
 
-}));
-
-//Creamos Base de datos y sus tablas
+//Create to Database
 const createIndexedDB = () => {
   //if (!('indexedDB' in window)) { return null; }
   openDB('findemes', 1, {
@@ -90,10 +63,9 @@ const createIndexedDB = () => {
   });
 }
 
-//const customStoreBalance = createStore('findemes', 'balance');
-//set('hello', 'world', customStoreBalance);
+const Home = () => {
+  const [isLoading, setIsLoading] = useState(true)
 
-const Home = (props) => {
   const isOnline = useOnlineStatus();
 
   const history = useHistory();
@@ -119,7 +91,11 @@ const Home = (props) => {
   useEffect(() => {
 
     // TODO - create indexedDB database
-    const dbPromise = createIndexedDB();
+    try {
+      const dbPromise = createIndexedDB();
+    } catch (e) {
+      console.log(e);
+    }
 
     // AGREGAR ESTE IF EN TODOS LOS useEffect 
 
@@ -130,48 +106,51 @@ const Home = (props) => {
       setShowClienteBoard(user.roles.includes("ROLE_USER"));
       setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
     } else {
-      props.history.push(process.env.PUBLIC_URL + "/login");
+      history.push(process.env.PUBLIC_URL + "/login");
     }
 
     const GetBalance = async () => {
       try {
+        setIsLoading(true);
         const result = await UserService.getBalance();
         if (result) {
+          setIsLoading(false);
         } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
+          history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
-        console.log(e);
-        props.history.push(process.env.PUBLIC_URL + "/login");
+        history.push(process.env.PUBLIC_URL + "/login");
       }
     }
     GetBalance();
 
     const GetCategories = async () => {
       try {
+        setIsLoading(true);
         const result = await UserService.getCategories();
         if (result) {
+          setIsLoading(false);
         } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
+          history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
-        console.log(e);
-        props.history.push(process.env.PUBLIC_URL + "/login");
+        history.push(process.env.PUBLIC_URL + "/login");
       }
     }
     GetCategories();
 
     const GetTotal = async () => {
       try {
+        setIsLoading(true);
         const result = await UserService.getTotal();
         if (result.total) {
           setTotal(result.total);
-        }else{
+          setIsLoading(false);
+        } else {
           setTotal('0');
         }
       } catch (e) {
-        console.log(e);
-        props.history.push(process.env.PUBLIC_URL + "/login");
+        history.push(process.env.PUBLIC_URL + "/login");
       }
     }
     GetTotal();
@@ -195,7 +174,7 @@ const Home = (props) => {
         setRegistration(reg);
       });
 
-      return () => listener.removeEventListener();
+      return () => listener.removeEventListener(null, null);
     } else {
       //do nothing because no sw in development
     }
@@ -247,7 +226,7 @@ const Home = (props) => {
   const gastos = () => {
     history.push(process.env.PUBLIC_URL + "/balanceadd/gastos")
   }
-  
+
   return (
     <OnlineStatusProvider>
       <IntlProvider locale={currentLocale} messages={messages}>
@@ -260,6 +239,7 @@ const Home = (props) => {
             })}
           >
             <Toolbar>
+            {isLoading && <CircularProgress color="secondary" />}
               <IconButton
                 onClick={handleDrawerOpen}
               >
