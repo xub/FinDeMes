@@ -1,93 +1,64 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 07/2022
  * By Sergio Sam 
  */
 
 import React from 'react';
 import { useState, useEffect } from 'react'
 
-import { makeStyles } from '@mui/styles';
-
 import Paper from '@mui/material/Paper';
+import AppBar from '@mui/material/AppBar';
+import CssBaseline from '@mui/material/CssBaseline';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Typography from '@mui/material/Typography';
 import { Modal, Button } from '@mui/material';
-
-import Breadcrumbs from '@mui/material/Breadcrumbs';
-import Alert from '@mui/material/Alert';
-
-import {
-  Grid,
-  ThemeProvider,
-  StyledEngineProvider,
-  adaptV4Theme,
-} from "@mui/material";
-
-import { createTheme } from "@mui/material/styles";
+import { useTheme, useStyles } from "./styles.js"
+import { Grid, ThemeProvider, StyledEngineProvider } from "@mui/material";
+import CircularProgress from '@mui/material/CircularProgress';
 
 import MaterialTable from 'material-table';
 
+import { useHistory } from "react-router-dom";
+ 
+import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
 
 let direction = "ltr";
 
-const theme = createTheme(
-  adaptV4Theme({
-    direction: direction,
-    palette: {
-      mode: "light",
-    },
-  })
-);
+export default function Balance() {
+  const history = useHistory();
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: '100%',
-  },
-  container: {
-    maxHeight: 440,
-  },
-  modal: {
-    position: 'absolute',
-    width: 400,
-    backgroundColor: '#fff',
-    border: '2px solid #000',
-    boxShadow: 5,
-    padding: (2, 4, 3),
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)'
-  },
-  iconos: {
-    cursor: 'pointer'
-  },
-  inputMaterial: {
-    width: '100%'
-  }
-}));
+  const [isLoading, setIsLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [showClienteBoard, setShowClienteBoard] = useState(false);
+  const [showAdminBoard, setShowAdminBoard] = useState(false);
 
-export default function Balance(props) {
-  const [total, setTotal] = useState([]);
   const styles = useStyles();
   const classes = useStyles();
-  const [data, setData] = useState([]);
+  const theme = useTheme;
   const [modalEliminar, setModalEliminar] = useState(false);
+  const [data, setData] = useState([]);
   const [consolaSeleccionada, setConsolaSeleccionada] = useState({
+    id: '',
     nombre: '',
     codigo: '',
   })
 
-  const peticionGet = async () => {
-    const result = await UserService.getBalance();
-    setData(result.data);
-  }
-
   const peticionDelete = async () => {
     const response = await UserService.delMovimiento(consolaSeleccionada.id);
     var data = response.data;
-    setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
+    //setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
     peticionGet();
-    totalT();
+    //totalT();
     abrirCerrarModalEliminar();
+  }
+
+  const peticionGet = async () => {
+    const result = await UserService.getBalance();
+    setData(result);
   }
 
   const abrirCerrarModalEliminar = () => {
@@ -97,47 +68,41 @@ export default function Balance(props) {
   const seleccionarConsola = (consola, caso) => {
     setConsolaSeleccionada(consola);
     (caso === 'Editar') ?
-      props.history.push(process.env.PUBLIC_URL + "/balancemod/" + consola.id) :
+      history.push(process.env.PUBLIC_URL + "/balancemod/" + consola.id) :
       abrirCerrarModalEliminar()
   }
 
   const inicio = () => {
-    props.history.push(process.env.PUBLIC_URL + "/")
-  }
-
-  const totalT = () => {
-
-    const GetBalance = async () => {
-      try {
-        const result = await UserService.getTotal();
-        if (result.code !== 401) {
-          setTotal(result.data.total);
-        }
-      } catch (e) {
-        props.history.push(process.env.PUBLIC_URL + "/login");
-        //history.push({ pathname: process.env.PUBLIC_URL + '/login', state: { response: '' } });
-      }
-    }
-    GetBalance();
-
+    history.push(process.env.PUBLIC_URL + "/")
   }
 
   useEffect(() => {
-    const GetData = async () => {
+
+    // si no hay user hay que loguearse 
+    const user = AuthService.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      setShowClienteBoard(user.roles.includes("ROLE_USER"));
+      setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+    } else {
+      history.push(process.env.PUBLIC_URL + "/login");
+    }
+
+    const GetBalance = async () => {
       try {
+        setIsLoading(true);
         const result = await UserService.getBalance();
         if (result) {
-          setData(result.data);
+          setData(result);
+          setIsLoading(false);
         } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
+          history.push(process.env.PUBLIC_URL + "/login");
         }
       } catch (e) {
-        props.history.push(process.env.PUBLIC_URL + "/login");
+        history.push(process.env.PUBLIC_URL + "/login");
       }
     }
-    GetData();
-
-    totalT();
+    GetBalance();
 
   }, []);
 
@@ -154,14 +119,26 @@ export default function Balance(props) {
   return (
     <Paper className={classes.root}>
 
-      <Alert variant="filled" severity="success">
-        Dinero restante: $ {total}
-      </Alert>
-      <br></br>
+      <CssBaseline />
 
-      <Breadcrumbs aria-label="breadcrumb">
-        <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => inicio()}>Inicio</Button>
-      </Breadcrumbs>
+      <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
+        <Toolbar>
+          {isLoading && <CircularProgress color="secondary" />}
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
+            <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
+          </IconButton>
+          <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
+            Balance
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
 
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={theme}>
@@ -211,7 +188,6 @@ export default function Balance(props) {
                       cellStyle: { textAlign: "center" }
                     },
                   ]}
-
                   data={data}
                   actions={[
                     {
@@ -227,25 +203,25 @@ export default function Balance(props) {
                   ]}
                   options={{
                     headerStyle: {
-                      backgroundColor: '#2e7d32',
-                      color: '#FFF',
+                      backgroundColor: '#fff159',
+                      color: '#000',
                     },
                     search: true,
                     actionsColumnIndex: -1
                   }}
                 />
 
-                <Modal
-                  open={modalEliminar}
-                  onClose={abrirCerrarModalEliminar}>
-                  {bodyEliminar}
-                </Modal>
-
               </Grid>
             </Grid>
           </div>
         </ThemeProvider>
       </StyledEngineProvider>
+
+      <Modal
+        open={modalEliminar}
+        onClose={abrirCerrarModalEliminar}>
+        {bodyEliminar}
+      </Modal>
 
     </Paper>
   );

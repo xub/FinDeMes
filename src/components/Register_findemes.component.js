@@ -18,6 +18,8 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
+import { useHistory } from "react-router-dom";
+
 import UserService from "../services/user.service";
 
 import * as yup from 'yup';
@@ -97,7 +99,8 @@ const validationSchema = yup.object({
     acceptTerms: yup.bool().oneOf([true], 'Debes aceptar los terminos y condiciones'),
 });
 
-export default function Register_findemes(props) {
+export default function Register_findemes() {
+    const history = useHistory();
     const classes = useStyles();
     const checkBtn = useRef();
  
@@ -130,7 +133,7 @@ export default function Register_findemes(props) {
     const switchShown1 = () => setShown1(!shown1);
 
     const cerrarEditar = () => {
-        props.history.push("/home");
+        history.push("/home");
     }
 
     useEffect(() => {

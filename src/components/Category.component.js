@@ -1,72 +1,46 @@
 /**
  * PWA FinDeFes
- * update 04/2022
+ * update 07/2022
  * By Sergio Sam 
  */
 
 import React from 'react';
 import { useState, useEffect } from 'react'
 
-import { makeStyles} from '@mui/styles';
-
 import Paper from '@mui/material/Paper';
-import { Modal, Button } from '@mui/material/';
-
+import AppBar from '@mui/material/AppBar';
+import CssBaseline from '@mui/material/CssBaseline';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
+import { useHistory } from "react-router-dom";
 
-import {
-  Grid,
-  ThemeProvider,
-  StyledEngineProvider,
-  adaptV4Theme,
-} from "@mui/material";
-
-import { createTheme } from "@mui/material/styles";
+import { Modal, Button } from '@mui/material';
+import { useTheme, useStyles } from "./styles.js"
+import { Grid, ThemeProvider, StyledEngineProvider } from "@mui/material";
+import CircularProgress from '@mui/material/CircularProgress';
 
 import MaterialTable from 'material-table';
 
+import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
 
 let direction = "ltr";
 
-const theme = createTheme(
-  adaptV4Theme({
-    direction: direction,
-    palette: {
-      mode: "light",
-    },
-  })
-);
+export default function Category() {
+  const history = useHistory();
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: '100%',
-  },
-  container: {
-    maxHeight: 440,
-  },
-  modal: {
-    position: 'absolute',
-    width: 400,
-    backgroundColor: '#fff',
-    border: '2px solid #000',
-    boxShadow: 5,
-    padding: (2, 4, 3),
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)'
-  },
-  iconos: {
-    cursor: 'pointer'
-  },
-  inputMaterial: {
-    width: '100%'
-  }
-}));
+  const [isLoading, setIsLoading] = useState(true)
+  const [currentUser,setCurrentUser] = useState(undefined);
+  const [showclientboard,setShowClienteBoard] = useState(false);
+  const [adminborad,setShowAdminBoard] = useState(false);
 
-export default function Categorias(props) {
   const styles = useStyles();
   const classes = useStyles();
+  const theme = useTheme;
+
   const [data, setData] = useState([]);
   const [modalEliminar, setModalEliminar] = useState(false);
   const [consolaSeleccionada, setConsolaSeleccionada] = useState({
@@ -74,25 +48,19 @@ export default function Categorias(props) {
     codigo: '',
   })
 
-  const peticionGet = async () => {
-    const result = await UserService.getCategorias();
-    setData(result.data);
-  }
-
   const peticionDelete = async () => {
-    const response = await UserService.delCategoria(consolaSeleccionada.id);
-    var data = response.data;
-    setData(data.filter(consola => consola.id !== consolaSeleccionada.id));
+    await UserService.delCategory(consolaSeleccionada.id);
     peticionGet();
     abrirCerrarModalEliminar();
   }
 
-  const inicio = () => {
-    props.history.push(process.env.PUBLIC_URL + "/")
+  const peticionGet = async () => {
+    const result = await UserService.getCategories();
+    setData(result);
   }
 
   const abrirCerrarModalInsertar = () => {
-    props.history.push(process.env.PUBLIC_URL + "/categoriasadd/")
+    history.push(process.env.PUBLIC_URL + "/categoryaddmod/")
   }
 
   const abrirCerrarModalEliminar = () => {
@@ -101,24 +69,8 @@ export default function Categorias(props) {
 
   const seleccionarConsola = (consola, caso) => {
     setConsolaSeleccionada(consola);
-    (caso === 'Editar') ? props.history.push(process.env.PUBLIC_URL + "/categoriasmod/" + consola.id) : abrirCerrarModalEliminar()
+    (caso === 'Editar') ? history.push(process.env.PUBLIC_URL + "/categoryaddmod/" + consola.id) : abrirCerrarModalEliminar()
   }
-
-  useEffect(() => {
-    const GetData = async () => {
-      try {
-        const result = await UserService.getCategorias();
-        if (result) {
-          setData(result.data);
-        } else {
-          props.history.push(process.env.PUBLIC_URL + "/login");
-        }
-      } catch (e) {
-        props.history.push(process.env.PUBLIC_URL + "/login");
-      }
-    }
-    GetData();
-  }, []);
 
   const bodyEliminar = (
     <div className={styles.modal}>
@@ -130,12 +82,67 @@ export default function Categorias(props) {
     </div>
   )
 
+  const inicio = () => {
+    history.push(process.env.PUBLIC_URL + "/")
+  }
+
+  useEffect(() => {
+
+    // si no hay user hay que loguearse 
+    const user = AuthService.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      setShowClienteBoard(user.roles.includes("ROLE_USER"));
+      setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+    } else {
+      history.push(process.env.PUBLIC_URL + "/login");
+    }
+
+    const GetCategories = async () => {
+      try {
+        setIsLoading(true);
+        const result = await UserService.getCategories();
+        if (result) {
+          setData(result);
+          setIsLoading(false);
+        } else {
+          history.push(process.env.PUBLIC_URL + "/login");
+        }
+      } catch (e) {
+        history.push(process.env.PUBLIC_URL + "/login");
+      }
+    }
+    GetCategories();
+
+  }, []);
+
   return (
     <Paper className={classes.root}>
 
+      <CssBaseline />
+
+      <AppBar style={{ background: '#fff159', alignItems: 'center' }} position="static">
+        <Toolbar>
+        {isLoading && <CircularProgress color="secondary" />}
+
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
+            <ArrowBackIcon style={{ color: '#000' }} onClick={() => inicio()} />
+          </IconButton>
+          <Typography variant="h4" component="div" style={{ color: '#000' }} sx={{ flexGrow: 1 }}>
+            Categorias
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
+      <br />
       <Breadcrumbs aria-label="breadcrumb">
-        <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => inicio()}>Inicio</Button>
-        <Button style={{ color: "#fff", backgroundColor: "#2e7d32", }} variant="contained" onClick={() => abrirCerrarModalInsertar()}>Nueva Categoria</Button>
+        <Button style={{ color: "#000", backgroundColor: "#fff159" }} variant="contained" onClick={() => abrirCerrarModalInsertar()}>Nueva Categoria</Button>
       </Breadcrumbs>
 
       <StyledEngineProvider injectFirst>
@@ -143,6 +150,7 @@ export default function Categorias(props) {
           <div style={{ maxWidth: "100%", direction }}>
             <Grid container>
               <Grid item xs={12}>
+
                 <MaterialTable
                   title=""
 
@@ -158,8 +166,6 @@ export default function Categorias(props) {
                         deleteText: 'Estas seguro de eliminar este registro ?'
                       }
                     },
-
-
                   }}
 
                   columns={[
@@ -183,8 +189,8 @@ export default function Categorias(props) {
                   ]}
                   options={{
                     headerStyle: {
-                      backgroundColor: '#2e7d32',
-                      color: '#FFF',
+                      backgroundColor: '#fff159',
+                      color: '#000',
                     },
                     search: true,
                     actionsColumnIndex: -1
@@ -202,6 +208,7 @@ export default function Categorias(props) {
           </div>
         </ThemeProvider>
       </StyledEngineProvider>
+
     </Paper>
   );
 }

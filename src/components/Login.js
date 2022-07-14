@@ -22,6 +22,8 @@ import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 
+import { useHistory } from "react-router-dom";
+
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 
@@ -82,7 +84,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Login = (props) => {
+const Login = () => {
+  const history = useHistory();
   const classes = useStyles();
   const form = useRef();
   const checkBtn = useRef();
@@ -112,7 +115,7 @@ const Login = (props) => {
     if (checkBtn.current.context._errors.length === 0) {
       AuthService.login(username, password).then(
         () => {
-          props.history.push(process.env.PUBLIC_URL + "/home");
+          history.push(process.env.PUBLIC_URL + "/home");
           window.location.reload();
         },
         (error) => {
@@ -132,7 +135,7 @@ const Login = (props) => {
   };
   
   const abrirCerrarModalInsertar = () => {
-    props.history.push("/registrarse/")
+    history.push("/registrarse/")
   }
 
   return (
