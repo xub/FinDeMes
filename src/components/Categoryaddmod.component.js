@@ -5,7 +5,6 @@
  */
 
 import React from 'react';
-import { useParams } from 'react-router';
 import { useState, useEffect } from 'react'
 import Paper from '@mui/material/Paper';
 import { Button, TextField } from '@mui/material';
@@ -19,6 +18,7 @@ import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useTheme, useStyles } from "./styles.js"
 import CircularProgress from '@mui/material/CircularProgress';
+import { useParams } from 'react-router';
 
 import { useHistory } from "react-router-dom";
 
@@ -28,6 +28,8 @@ import * as yup from 'yup';
 import AuthService from "../services/auth.service";
 import UserService from "../services/user.service";
 
+import { v4 as uuidv4 } from 'uuid';
+
 //Validacion del formulario
 const validationSchema = yup.object({
   nombre: yup
@@ -35,17 +37,17 @@ const validationSchema = yup.object({
     .required('Nombre de categoria requerido'),
 });
 
-export default function Categoriasaddmod() {
+export default function Categoryaddmod() {
   const history = useHistory();
 
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
 
   //inicializacion de variables y validacion
   const formik = useFormik({
     initialValues: {
       nombre: '',
       nota: '',
-      id: '',
+      id: uuidv4(),
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
@@ -58,6 +60,7 @@ export default function Categoriasaddmod() {
   const [showAdminBoard, setShowAdminBoard] = useState(false);
 
   const { id } = useParams();
+
   const styles = useStyles();
   const classes = useStyles();
 
@@ -75,7 +78,6 @@ export default function Categoriasaddmod() {
   }
 
   useEffect(() => {
-
     // si no hay user hay que loguearse 
     const user = AuthService.getCurrentUser();
     if (user) {
@@ -85,19 +87,21 @@ export default function Categoriasaddmod() {
     } else {
       history.push(process.env.PUBLIC_URL + "/login");
     }
- 
+
     const GetData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await UserService.getCategory(id);
-        if (response) {
-          formik.setValues(response);
-          setIsLoading(false);
-        }else{
+      if (id) {
+        try {
+          setIsLoading(true);
+          const response = await UserService.getCategory(id);
+          if (response) {
+            formik.setValues(response);
+            setIsLoading(false);
+          } else {
+            history.push(process.env.PUBLIC_URL + "/login");
+          }
+        } catch (e) {
           history.push(process.env.PUBLIC_URL + "/login");
-        }  
-      } catch (e) {
-        history.push(process.env.PUBLIC_URL + "/login");
+        }
       }
     }
     GetData();
@@ -131,7 +135,7 @@ export default function Categoriasaddmod() {
 
           <form onSubmit={formik.handleSubmit}>
 
-            <Grid container spacing={3} style={{ minHeight: '100vh', padding:'20px' }} >
+            <Grid container spacing={3} style={{ minHeight: '100vh', padding: '20px' }} >
 
               <Grid item xs={12}>
                 <TextField
@@ -140,6 +144,7 @@ export default function Categoriasaddmod() {
                   label="Nomre de categoria"
                   autoFocus={true}
                   value={formik.values.nombre}
+                  autoComplete='off'
                   onChange={formik.handleChange}
                   error={formik.touched.nombre && Boolean(formik.errors.nombre)}
                   helperText={formik.touched.nombre && formik.errors.nombre}
@@ -147,7 +152,7 @@ export default function Categoriasaddmod() {
               </Grid>
               <Grid item xs={12}>
                 <div align="center" style={{ background: '#fff159' }} >
-                  <Button color="primary" type="submit">Modificar</Button>
+                  <Button color="primary" type="submit">Guardar</Button>
                 </div>
               </Grid>
             </Grid>

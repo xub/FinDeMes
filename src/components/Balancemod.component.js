@@ -75,6 +75,7 @@ export default function Balancemod() {
   const classes = useStyles();
   const [data, setData] = useState([]);
   const [modalInsertar, setModalInsertar] = useState(false);
+  
   const [consolaSeleccionada, setConsolaSeleccionada] = useState({
     id: '',
     nombre: '',
@@ -127,6 +128,7 @@ export default function Balancemod() {
       try {
         setIsLoading(true);
         const response = await UserService.getBalanceid(id);
+        console.log(response)
         if (response) {
           formik.setValues(response);
           setIsLoading(false);

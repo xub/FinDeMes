@@ -7,7 +7,7 @@
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 
-const API_URL = "https://devapi.findemes.ar/api/";
+const API_URL = "https://api.findemes.ar/api/";
 //const API_URL = "http://localhost:8080/api/auth/";
 
 const register = (_username, _email, _password) => {

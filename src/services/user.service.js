@@ -1,6 +1,6 @@
 /**
  * PWA FinDeFes
- * update 06/2022
+ * update 07/2022
  * By Sergio Sam 
  */
 
@@ -9,7 +9,7 @@ import { handleResponse } from './handle-response';
 import { openDB, deleteDB, wrap, unwrap } from 'idb';
 import idbcache from 'idbcache';
 
-const API_URL = 'https://devapi.findemes.ar/api/v1/';
+const API_URL = 'https://api.findemes.ar/api/v1/';
 const user = JSON.parse(localStorage.getItem('user'));
 
 /**
@@ -91,15 +91,15 @@ const getBalanceid = async (id, row) => {
   const db = await openDB('findemes', 1);
 //probando consulta online 
   var store;
-  //try {
-  //  const store = db.transaction('balance').objectStore('balance');
-  //  const value = await store.get(id);
-  //  return value;
-  //}
-  //catch (e) {
+  try {
+    const store = db.transaction('balance').objectStore('balance');
+    const value = await store.get(id);
+    return value;
+  }
+  catch (e) {
     const requestOptions = { method: 'GET', headers: authHeader() };
     return (fetch(API_URL + 'getbalanceid?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
-  //}
+  }
 
 };
 
@@ -385,18 +385,18 @@ const getCategory = async (id, row) => {
 
   const db = await openDB('findemes', 1);
 
-  //var store;
-  //try {
-  //  const store = db.transaction('categorias').objectStore('categorias');
-  //  const value = await store.get(id);
-  //  db.close();
-  //  return value;
-  //}
-  //catch (e) {
+  var store;
+  try {
+    const store = db.transaction('categorias').objectStore('categorias');
+    const value = await store.get(id);
+    db.close();
+    return value;
+  }
+  catch (e) {
     const requestOptions = { method: 'GET', headers: authHeader() };
     db.close();
     return (fetch(API_URL + 'getcategoria?email=' + user.email + '&id=' + id, requestOptions).then(handleResponse));
-  //}
+  }
 
 };
 
@@ -533,7 +533,7 @@ const delCategory = async (id) => {
   const db = await openDB('findemes', 1);
   // Delete the row from the store
   await db.delete('categorias', id);
-
+ 
   const requestOptions = { method: 'POST', body: data, headers: authHeader() };
   return (fetch(API_URL + 'delcategoria', requestOptions).then(handleResponse));
 };

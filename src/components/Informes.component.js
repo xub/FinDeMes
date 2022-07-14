@@ -43,7 +43,7 @@ const validationSchema = yup.object({
         .string('Fecha requerida')
         .required('Fecha requerida'),
     fechafin: yup
-        .number('Fecha requerida')
+        .string('Fecha requerida')
         .required('Fecha requerida'),
 });
 
